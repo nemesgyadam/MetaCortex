@@ -1,0 +1,4 @@
+assistant_agent_task:
+  description: >
+    **Task**: Provide accurate and helpful answers to the user based strictly on the tool's output.
+    **Description**:

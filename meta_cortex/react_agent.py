@@ -6,8 +6,10 @@ import os
 import re
 import json
 import httpx
+import asyncio
 from typing import Dict, List, Callable, Any, Optional, Tuple
 from dotenv import load_dotenv
+from client_manager import ClientManager
 
 # Load environment variables
 load_dotenv()
@@ -87,39 +89,63 @@ class ReActAgent:
     
     def __init__(
         self, 
-        actions: Dict[str, Tuple[Callable, str]], 
-        model: str = "anthropic/claude-3-opus:beta",
-        max_turns: int = 5,
-        config_path: str = "mcp_config.json"
+        model: str ="openai/gpt-4o",
+        endurance: int = 5,
+        config_path: str = None
     ):
         """
         Initialize the ReAct agent.
         
         Args:
-            actions: Dictionary mapping action names to (function, description) tuples
             model: OpenRouter model identifier to use
-            max_turns: Maximum number of reasoning turns before giving up
-            config_path: Path to the MCP configuration file
+            endurance: Indicate the maximum number of reasoning turns before giving up
+            config_path: Path to MCP configuration file
         """
-        self.actions = actions
-        self.max_turns = max_turns
-        self.action_re = re.compile(r'^Action: (\w+): (.*)$')
-        self.config_path = config_path
+        # Initialize the client manager
+        self.client_manager = ClientManager(config_path)
+        
+        # Set up the agent parameters
+        self.model = model
+        self.max_turns = endurance**2
+        self.action_re = re.compile(r'Action: \[([\w_]+)\|([\w_]+)(?:\|(.*))?\]')
+        
+        # These will be populated during initialization
+        self.actions = {}
+        self.system_prompt = ""
+        self.initialized = False
+    
+    async def initialize(self) -> None:
+        """
+        Initialize the ReAct agent asynchronously.
+        This needs to be called before using the agent.
+        """
+        if self.initialized:
+            return
+            
+        # Load configurations, create clients, and connect to servers
+        await self.client_manager.start()
+        
+        # Get tools from all connected clients using the client_manager
+        self.actions = self.client_manager.get_tools()
         
         # Create the system prompt with available actions
-        action_descriptions = "\n".join([
-            f"{name}:\ne.g. {name}: {desc}" 
-            for name, (_, desc) in actions.items()
+        action_descriptions = "\r\n".join([
+            f"{name}:\r\n\r\n{desc}" 
+            for name, (_, desc) in self.actions.items()
         ])
         
-        system_prompt = f"""
+        self.system_prompt = f"""
 You run in a loop of Thought, Action, PAUSE, Observation.
 At the end of the loop you output an Answer.
 Use Thought to describe your thoughts about the question you have been asked.
-Use Action to run one of the actions available to you - then return PAUSE.
-Observation will be the result of running those actions.
+Use Action to run one of the actions available to you - then you will get an Observation from that action.
+For tool calling return Action [server_name|tool_name|arg1_name:arg1_value,arg2_name:arg2_value]
 
-Your available actions are:
+Example: [filesystem|list_directory|path:C:/Code]
+
+When you have an answer to the question, start your message with "Final answer: " to provide it.
+
+Here are the actions available to you:
 
 {action_descriptions}
 
@@ -127,22 +153,18 @@ Example session:
 
 Question: What is the capital of France?
 Thought: I should look up information about France.
-Action: search: France capital
+Action: [search_server | search_web | key:France capital, year:2025]
 PAUSE
-
-You will be called again with this:
 
 Observation: France is a country in Western Europe. The capital of France is Paris.
 
-You then output:
-
 Thought: I found that the capital of France is Paris.
-Answer: The capital of France is Paris.
-""".strip()
+Final answer: The capital of France is Paris.
+"""
         
-        self.agent = OpenRouterAgent(system_prompt, model)
+        self.initialized = True
     
-    def run(self, question: str) -> str:
+    async def run(self, question: str) -> str:
         """
         Run the ReAct agent on a question.
         
@@ -152,62 +174,106 @@ Answer: The capital of France is Paris.
         Returns:
             Final answer after the reasoning process
         """
+        # Make sure the agent is initialized
+        if not self.initialized:
+            await self.initialize()
+            
         turn = 0
         next_prompt = question
         
+        # Create the LLM agent for this run
+        llm_agent = OpenRouterAgent(system_prompt=self.system_prompt, model=self.model)
+        
         while turn < self.max_turns:
+            print(f"\n--- Turn {turn + 1} ---")
+            response = llm_agent(next_prompt)
+            print(f"Response:\r\n{response}")
+            
+            # Check if we have a final answer
+            if "Final answer:" in response:
+                # Extract the final answer
+                final_answer_match = re.search(r'Final answer:(.*?)(?:$|\n\n)', response, re.DOTALL)
+                if final_answer_match:
+                    return final_answer_match.group(1).strip()
+                else:
+                    return response.split("Final answer:")[1].strip()
+            
+            # Check if we have an action to perform
+            action_match = self.action_re.search(response)
+            if action_match:
+                server_name = action_match.group(1)
+                action_name = action_match.group(2)
+                action_args = action_match.group(3)
+                print(f"Action found in response==>Server name: {server_name}, Action name: {action_name}, action_args: {action_args}")
+                
+                args = {}
+                if action_args:
+                    if "," in action_args:
+                        for arg in action_args.split(", "):
+                            key, value = arg.split(":")
+                            args[key] = value
+                    else:
+                        key = action_args.split(":")[0]
+                        value = ":".join(action_args.split(":")[1:])
+                        args[key] = value
+
+                # Call the action
+                result = await self.client_manager.call_tool(server_name, action_name, args)
+                print(f"\nObservation: {result}")
+                next_prompt = f"{next_prompt}\r\nObservation: {result}"
+            
             turn += 1
-            result = self.agent(next_prompt)
-            print(f"\n--- Turn {turn} ---")
-            print(result)
-            
-            # Check if there's an action to run
-            actions = [self.action_re.match(a) for a in result.split('\n') if self.action_re.match(a)]
-            
-            if not actions:
-                # No more actions, return the final result
-                return result
-                
-            # Execute the action
-            action_match = actions[0]
-            action_name, action_input = action_match.groups()
-            
-            if action_name not in self.actions:
-                return f"Error: Unknown action: {action_name}"
-                
-            action_func, _ = self.actions[action_name]
-            print(f"Running: {action_name}({action_input})")
-            
-            try:
-                observation = action_func(action_input)
-                print(f"Observation: {observation}")
-                next_prompt = f"Observation: {observation}"
-            except Exception as e:
-                next_prompt = f"Observation: Error executing {action_name}: {str(e)}"
-                print(next_prompt)
         
         return "Reached maximum number of turns without a final answer."
+    
+    async def cleanup(self) -> None:
+        """
+        Clean up resources when the agent is done.
+        This is an async method and should be awaited.
+        """
+        try:
+            await self.client_manager.close_all_clients()
+            print("Closed all MCP client connections")
+        except Exception as e:
+            print(f"Error during cleanup: {str(e)}")
 
 
-# Example usage
-if __name__ == "__main__":
-    from mcp_tools import MCPTools
+async def run_agent_example() -> None:
+    """
+    Example of running the ReAct agent.
+    """
+    print("Testing ReActAgent with MCP tools")
     
-    # Create MCP tools
-    mcp_tools = MCPTools("mcp_config.json")
+    # Get the current directory for the config path
+    import os
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(base_dir, "mcp_config.json")
     
-    # Get all available MCP tools
-    actions = mcp_tools.get_available_tools()
-    
-    # Create the agent with MCP actions
-    agent = ReActAgent(actions)
-    
+    agent = None
     try:
-        # Test the agent
+        # Create the agent with the config path
+        agent = ReActAgent(config_path=config_path, endurance=3)
+        
+        # Initialize the agent
+        await agent.initialize()
+        
+        # Test the agent with a directory listing question
+        print("\nTesting agent with question:")
         question = "What files are in the C:/Code directory?"
-        print(f"\nQuestion: {question}")
-        answer = agent.run(question)
+        print(f"Question: {question}")
+        
+        # Run the agent
+        answer = await agent.run(question)
         print("\nFinal answer:", answer)
+        
+    except Exception as e:
+        print(f"\nError running agent: {str(e)}")
+        import traceback
+        traceback.print_exc()
     finally:
-        # Clean up resources
-        mcp_tools.cleanup()
+        # Make sure to clean up resources
+        if agent is not None:
+            await agent.cleanup()
+
+if __name__ == "__main__":
+    asyncio.run(run_agent_example())
