@@ -1,0 +1,16 @@
+In this project you are working on a multiagent AI assistant.
+The goal is to write an universal framework. That can be undesrand and use easily.
+
+Also use the latest technology stack to be up to date.
+
+The core of the project is Model Context Protocol. (mcp) 
+Use it everywhere where makes sense.
+
+Aim to work with openrouter where there is an LLM call.
+
+Important!!!
+Dont ever change the used technology without asking first.
+
+Don't write any hardcoded result. Always ensure that the solution is actually working.
+
+Use the .venv enviroment. 

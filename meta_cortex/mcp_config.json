@@ -1,0 +1,27 @@
+{
+    "mcpServers": {
+      "graphiti": {
+        "type": "python",
+        "path": "C:/Code/graphiti/mcp_server/graphiti_mcp_server.py",
+        "args": [
+          "--transport",
+          "stdio",
+          "--group-id",
+          "prisma"
+        ]
+      },
+      "playwright": {
+        "type": "node",
+        "path": "@playwright/mcp",
+        "args": []
+      },
+      "filesystem": {
+        "type": "node",
+        "path": "@modelcontextprotocol/server-filesystem",
+        "args": [
+          "C:/Code",
+          "N:/"
+        ]
+      }
+    }
+  }
