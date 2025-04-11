@@ -24,7 +24,7 @@ import os
 from typing import Dict, List, Any, Optional, Tuple, Callable
 from contextlib import AsyncExitStack
 
-from my_client import MCPClient
+from mcp_client import MCPClient
 
 
 class ClientManager:
@@ -231,28 +231,16 @@ class ClientManager:
         # Create a list of clients to avoid modifying the dictionary during iteration
         client_items = list(self.clients.items())
         
-        # Close each client individually with separate tasks to prevent cancellation propagation
-        close_tasks = []
-        
+        # Close each client individually without using tasks
         for server_name, client in client_items:
             if hasattr(client, 'exit_stack') and client.exit_stack is not None:
-                # Create a task for each client close operation
-                task = asyncio.create_task(self._close_client(server_name, client))
-                close_tasks.append(task)
+                try:
+                    # Use a simple try-except block instead of tasks
+                    await self._close_client(server_name, client)
+                except Exception as e:
+                    print(f"Error closing client {server_name}: {str(e)}")
             else:
                 print(f"Client {server_name} has no exit_stack, skipping close")
-        
-        # Wait for all close tasks to complete, but don't propagate cancellations
-        if close_tasks:
-            done, pending = await asyncio.wait(close_tasks, timeout=3.0)
-            
-            # Cancel any pending tasks
-            for task in pending:
-                task.cancel()
-                
-            # Wait for the cancelled tasks to finish (they'll raise CancelledError)
-            if pending:
-                await asyncio.wait(pending, timeout=1.0)
         
         # Clear the client dictionaries after all closing attempts
         self.clients = {}
@@ -316,7 +304,6 @@ class ClientManager:
         client = self.connected_clients[server_name]
         
         try:
-            print("calling tooooool")
             result = await client.call_tool(tool_name, params)
             return result
         except Exception as e:

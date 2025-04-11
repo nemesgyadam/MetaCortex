@@ -7,9 +7,11 @@ import re
 import json
 import httpx
 import asyncio
+import yaml
 from typing import Dict, List, Callable, Any, Optional, Tuple
 from dotenv import load_dotenv
 from client_manager import ClientManager
+from agent_config import AgentConfig
 
 # Load environment variables
 load_dotenv()
@@ -65,20 +67,40 @@ class OpenRouterAgent:
         
         payload = {
             "model": self.model,
-            "messages": self.messages
+            "messages": self.messages,
+            "max_tokens": 1000  # Limit token usage to avoid credit issues
         }
         
-        response = httpx.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers=headers,
-            json=payload
-        )
-        
-        if response.status_code != 200:
-            raise Exception(f"API call failed with status code {response.status_code}: {response.text}")
+        try:
+            response = httpx.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=30.0  # Add a timeout to prevent hanging
+            )
             
-        response_data = response.json()
-        return response_data["choices"][0]["message"]["content"]
+            if response.status_code != 200:
+                error_msg = f"API call failed with status code {response.status_code}: {response.text}"
+                print(error_msg)
+                return f"Error: {error_msg}"
+                
+            response_data = response.json()
+            
+            # Check if the response has the expected format
+            if "choices" not in response_data or not response_data["choices"]:
+                print(f"Unexpected API response format: {response_data}")
+                return "Error: Unexpected API response format"
+                
+            return response_data["choices"][0]["message"]["content"]
+            
+        except httpx.RequestError as e:
+            error_msg = f"Request error: {str(e)}"
+            print(error_msg)
+            return f"Error: {error_msg}"
+        except Exception as e:
+            error_msg = f"Error during API call: {str(e)}"
+            print(error_msg)
+            return f"Error: {error_msg}"
 
 
 class ReActAgent:
@@ -89,25 +111,46 @@ class ReActAgent:
     
     def __init__(
         self, 
-        model: str ="openai/gpt-4o",
-        endurance: int = 5,
-        config_path: str = None
+        model: str = None,
+        endurance: int = None,
+        config_path: str = None,
+        agent_config_path: str = None
     ):
         """
         Initialize the ReAct agent.
         
         Args:
-            model: OpenRouter model identifier to use
-            endurance: Indicate the maximum number of reasoning turns before giving up
+            model: OpenRouter model identifier to use (overrides agent config if provided)
+            endurance: Indicate the maximum number of reasoning turns before giving up (overrides agent config if provided)
             config_path: Path to MCP configuration file
+            agent_config_path: Path to agent configuration YAML file
         """
         # Initialize the client manager
         self.client_manager = ClientManager(config_path)
         
-        # Set up the agent parameters
-        self.model = model
-        self.max_turns = endurance**2
-        self.action_re = re.compile(r'Action: \[([\w_]+)\|([\w_]+)(?:\|(.*))?\]')
+        # Load agent configuration if available
+        self.agent_config = AgentConfig(agent_config_path)
+        self.agent_data = self.agent_config.get_agent_config("assistant_agent")
+        
+        # Set up the agent parameters, using config values if available
+        self.model = model or self.agent_data.get("model", "openai/gpt-4o").strip()
+        
+        # Parse endurance from config if not provided directly
+        config_endurance = self.agent_data.get("endurance")
+        if config_endurance and not endurance:
+            try:
+                endurance = int(config_endurance.strip())
+            except (ValueError, TypeError):
+                endurance = 5
+        
+        self.endurance = endurance or 5
+        self.max_turns = self.endurance**2
+        self.action_re = re.compile(r'Action: \[(\w+)\|(\w+)(?:\|(.*))?\]')
+        
+        # Get role, goal, and backstory from agent config
+        self.role = self.agent_data.get("role", "").strip()
+        self.goal = self.agent_data.get("goal", "").strip()
+        self.backstory = self.agent_data.get("backstory", "").strip()
         
         # These will be populated during initialization
         self.actions = {}
@@ -128,39 +171,58 @@ class ReActAgent:
         # Get tools from all connected clients using the client_manager
         self.actions = self.client_manager.get_tools()
         
-        # Create the system prompt with available actions
-        action_descriptions = "\r\n".join([
-            f"{name}:\r\n\r\n{desc}" 
-            for name, (_, desc) in self.actions.items()
+        # Create a description of all available actions for the system prompt
+        action_descriptions = "\n".join([
+            f"- {name}: {description}" 
+            for name, (_, description) in self.actions.items()
         ])
         
-        self.system_prompt = f"""
-You run in a loop of Thought, Action, PAUSE, Observation.
-At the end of the loop you output an Answer.
-Use Thought to describe your thoughts about the question you have been asked.
-Use Action to run one of the actions available to you - then you will get an Observation from that action.
-For tool calling return Action [server_name|tool_name|arg1_name:arg1_value,arg2_name:arg2_value]
-
-Example: [filesystem|list_directory|path:C:/Code]
-
-When you have an answer to the question, start your message with "Final answer: " to provide it.
+        # Load system prompt from file
+        try:
+            # Get the current directory for the prompt path
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            prompt_path = os.path.join(base_dir, "prompts", "react_agent.txt")
+            
+            with open(prompt_path, 'r') as f:
+                prompt_template = f.read()
+            
+            # Replace tags with values
+            self.system_prompt = prompt_template.replace("{{action_descriptions}}", action_descriptions)
+            
+            # Add agent's role, goal, and backstory if available
+            agent_persona = ""
+            if self.role:
+                agent_persona += f"\n\nYOUR ROLE:\n{self.role}"
+            if self.goal:
+                agent_persona += f"\n\nYOUR GOAL:\n{self.goal}"
+            if self.backstory:
+                agent_persona += f"\n\nYOUR BACKSTORY:\n{self.backstory}"
+            
+            # Add the agent persona to the system prompt
+            if agent_persona:
+                self.system_prompt += agent_persona
+            
+            print(f"Loaded system prompt from {prompt_path} with agent persona")
+        except Exception as e:
+            print(f"Error loading system prompt: {str(e)}")
+            # Fallback to a default prompt if file loading fails
+            self.system_prompt = f"""You run in a loop of Thought, Action, PAUSE, Observation.
+Use Action to run one of the actions available to you.
+For tool calling return Action [server_name|tool_name|arg1_name:arg1_value]
+When you have an answer, start with "Final answer: "
 
 Here are the actions available to you:
 
 {action_descriptions}
-
-Example session:
-
-Question: What is the capital of France?
-Thought: I should look up information about France.
-Action: [search_server | search_web | key:France capital, year:2025]
-PAUSE
-
-Observation: France is a country in Western Europe. The capital of France is Paris.
-
-Thought: I found that the capital of France is Paris.
-Final answer: The capital of France is Paris.
 """
+            
+            # Add agent's role, goal, and backstory to fallback prompt if available
+            if self.role:
+                self.system_prompt += f"\n\nYOUR ROLE:\n{self.role}"
+            if self.goal:
+                self.system_prompt += f"\n\nYOUR GOAL:\n{self.goal}"
+            if self.backstory:
+                self.system_prompt += f"\n\nYOUR BACKSTORY:\n{self.backstory}"
         
         self.initialized = True
     
@@ -192,11 +254,7 @@ Final answer: The capital of France is Paris.
             # Check if we have a final answer
             if "Final answer:" in response:
                 # Extract the final answer
-                final_answer_match = re.search(r'Final answer:(.*?)(?:$|\n\n)', response, re.DOTALL)
-                if final_answer_match:
-                    return final_answer_match.group(1).strip()
-                else:
-                    return response.split("Final answer:")[1].strip()
+                return response
             
             # Check if we have an action to perform
             action_match = self.action_re.search(response)
@@ -204,7 +262,7 @@ Final answer: The capital of France is Paris.
                 server_name = action_match.group(1)
                 action_name = action_match.group(2)
                 action_args = action_match.group(3)
-                print(f"Action found in response==>Server name: {server_name}, Action name: {action_name}, action_args: {action_args}")
+                #print(f"Action found in response==>Server name: {server_name}, Action name: {action_name}, action_args: {action_args}")
                 
                 args = {}
                 if action_args:
@@ -232,10 +290,18 @@ Final answer: The capital of France is Paris.
         This is an async method and should be awaited.
         """
         try:
-            await self.client_manager.close_all_clients()
-            print("Closed all MCP client connections")
+            # Ensure client_manager exists before trying to close clients
+            if hasattr(self, 'client_manager') and self.client_manager is not None:
+                await self.client_manager.close_all_clients()
+                print("Closed all MCP client connections")
+            else:
+                print("No client manager to clean up")
         except Exception as e:
             print(f"Error during cleanup: {str(e)}")
+        finally:
+            # Ensure all resources are properly released
+            if hasattr(self, 'client_manager'):
+                self.client_manager = None
 
 
 async def run_agent_example() -> None:
@@ -244,15 +310,22 @@ async def run_agent_example() -> None:
     """
     print("Testing ReActAgent with MCP tools")
     
-    # Get the current directory for the config path
+    # Get the current directory for the config paths
     import os
     base_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(base_dir, "mcp_config.json")
     
+    # Path to the agent configuration file
+    project_dir = os.path.dirname(base_dir)
+    agent_config_path = os.path.join(project_dir, "prompts", "agents.yaml")
+    
     agent = None
     try:
-        # Create the agent with the config path
-        agent = ReActAgent(config_path=config_path, endurance=3)
+        # Create the agent with both config paths
+        agent = ReActAgent(
+            config_path=config_path,
+            agent_config_path=agent_config_path
+        )
         
         # Initialize the agent
         await agent.initialize()
@@ -264,7 +337,11 @@ async def run_agent_example() -> None:
         
         # Run the agent
         answer = await agent.run(question)
-        print("\nFinal answer:", answer)
+        #print("\nFinal answer:", answer)
+
+        question2 = "What are the lates news in cnn.com?"
+        answer2 = await agent.run(question2)
+        #print("\nFinal answer:", answer2)
         
     except Exception as e:
         print(f"\nError running agent: {str(e)}")
@@ -273,7 +350,46 @@ async def run_agent_example() -> None:
     finally:
         # Make sure to clean up resources
         if agent is not None:
-            await agent.cleanup()
+            try:
+                await agent.cleanup()
+                print("Cleanup completed successfully")
+            except Exception as e:
+                print(f"Error during final cleanup: {str(e)}")
 
 if __name__ == "__main__":
-    asyncio.run(run_agent_example())
+    # Create a new event loop
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    try:
+        # Run the main function
+        loop.run_until_complete(run_agent_example())
+    finally:
+        # Give pending tasks a chance to complete
+        pending = asyncio.all_tasks(loop)
+        for task in pending:
+            if not task.done():
+                task.cancel()
+        
+        # Allow the loop to process the cancellations
+        if pending:
+            loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+        
+        # A simpler approach to avoid subprocess cleanup issues
+        # First, run a small event loop to allow any pending operations to complete
+        try:
+            # Create a dummy task that just sleeps for a short time
+            async def cleanup_delay():
+                await asyncio.sleep(0.5)
+            
+            # Run the cleanup delay task
+            loop.run_until_complete(cleanup_delay())
+        except Exception as e:
+            print(f"Cleanup delay error (can be ignored): {e}")
+        
+        # Force garbage collection to clean up any remaining resources
+        import gc
+        gc.collect()
+        
+        # Close the loop
+        loop.close()
