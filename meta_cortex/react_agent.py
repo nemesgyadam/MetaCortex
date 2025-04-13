@@ -498,24 +498,75 @@ class ReActAgent:
         next_prompt = f"{current_prompt}\r\nObservation: {result}"
         return next_prompt, False
     
-    def initialize(self) -> None:
+    def initialize(self, timeout: float = 10.0) -> None:
         """
-        Initialize the ReAct agent. Creates and manages its own event loop.
+        Initialize the ReAct agent. Uses existing event loop if available, otherwise creates one.
         This needs to be called before using the agent.
+        
+        Args:
+            timeout: Maximum time in seconds to wait for initialization of each attempt
         """
         self.logger.section("INITIALIZING AGENT")
         
-        # Set up event loop
-        self.loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self.loop)
-        
-        # Run the async initialization in our loop
+        # Try to get existing event loop, create new one if none exists
         try:
-            self.loop.run_until_complete(self._async_initialize())
-            self.logger.log("Agent initialized successfully", LogLevel.SUCCESS)
-        except Exception as e:
-            self.logger.log(f"Error during initialization: {e}", LogLevel.ERROR)
-            raise
+            self.loop = asyncio.get_event_loop()
+        except RuntimeError:
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
+        
+        # Run the async initialization in our loop with retry mechanism
+        max_retries = 3
+        last_error = None
+        
+        for attempt in range(max_retries):
+            try:
+                # Create a task with timeout
+                async def init_with_timeout():
+                    await self._async_initialize()
+                    # Verify filesystem server connection
+                    if not self.client_manager or not self.client_manager.is_connected("filesystem"):
+                        raise RuntimeError("Filesystem server not connected after initialization")
+                
+                # Run initialization with timeout
+                self.loop.run_until_complete(asyncio.wait_for(init_with_timeout(), timeout))
+                self.logger.log(f"Agent initialized successfully on attempt {attempt + 1}", LogLevel.SUCCESS)
+                return
+            except asyncio.TimeoutError:
+                last_error = RuntimeError(f"Initialization timed out after {timeout} seconds")
+                self.logger.log(f"Initialization attempt {attempt + 1} timed out", LogLevel.WARNING)
+            except Exception as e:
+                last_error = e
+                self.logger.log(f"Initialization attempt {attempt + 1} failed: {e}", LogLevel.WARNING)
+            
+            # Retry logic
+            if attempt < max_retries - 1:
+                self.logger.log(f"Retrying initialization... ({attempt + 2}/{max_retries})", LogLevel.INFO)
+                # Small delay before retry
+                self.loop.run_until_complete(asyncio.sleep(1.0))
+                # Clean up before retry
+                if self.client_manager:
+                    self.loop.run_until_complete(self.client_manager.close_all_clients())
+                    self.client_manager = ClientManager(self.config_path)
+                # Wait a bit before retrying
+                self.loop.run_until_complete(asyncio.sleep(1.0))
+        
+        self.logger.log(f"Failed to initialize after {max_retries} attempts: {last_error}", LogLevel.ERROR)
+        raise last_error
+    
+    def is_connected(self, server_name: str) -> bool:
+        """
+        Check if a specific server is connected.
+        
+        Args:
+            server_name: Name of the server to check
+            
+        Returns:
+            bool: True if server is connected, False otherwise
+        """
+        if not self.clients:
+            return False
+        return server_name in self.clients and self.clients[server_name] is not None
     
     async def _async_initialize(self) -> None:
         """
@@ -530,10 +581,32 @@ class ReActAgent:
         self.logger.log("Starting client manager", LogLevel.INFO)
         await self.client_manager.start()
         
+        # Verify that critical servers are connected
+        self.logger.log("Verifying server connections", LogLevel.INFO)
+        if not self.client_manager.is_connected("filesystem"):
+            self.logger.log("Filesystem server not connected", LogLevel.ERROR)
+            raise RuntimeError("Failed to connect to filesystem server")
+            
+        # Ensure we have access to the connected clients
+        if not hasattr(self.client_manager, 'connected_clients') or not self.client_manager.connected_clients:
+            self.logger.log("No connected clients available", LogLevel.ERROR)
+            for server_name in self.client_manager.get_server_names():
+                self.logger.log(f"Server {server_name} connection status: {self.client_manager.is_connected(server_name)}", LogLevel.INFO)
+            
         # Get tools from all connected clients
         self.logger.log("Loading available tools", LogLevel.INFO)
         self.actions = self.client_manager.get_tools()
-        self.logger.log(f"Loaded {len(self.actions)} tools", LogLevel.INFO)
+        
+        # Debug output of available tools
+        if not self.actions:
+            self.logger.log("No tools loaded - debugging connection state:", LogLevel.WARNING)
+            for server_name, client in self.client_manager.connected_clients.items():
+                if hasattr(client, 'tools'):
+                    self.logger.log(f"Server {server_name} has {len(client.tools)} tools", LogLevel.INFO)
+                else:
+                    self.logger.log(f"Server {server_name} has no tools attribute", LogLevel.WARNING)
+        else:
+            self.logger.log(f"Loaded {len(self.actions)} tools", LogLevel.INFO)
         
         # Load system prompt with action descriptions
         self.logger.log("Loading system prompt", LogLevel.INFO)
@@ -722,7 +795,7 @@ if __name__ == "__main__":
         agent.initialize()
         
         # Define a sample question
-        question = "What files are in the current directory?"
+        question = "What files are in C:/Code?"
         logger.log(f"Running agent with question: '{question}'", LogLevel.INFO)
         
         # Run the agent

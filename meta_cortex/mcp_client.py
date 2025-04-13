@@ -54,6 +54,45 @@ class MCPClient:
             "input_schema": tool.inputSchema
         } for tool in response.tools]
         
+    def is_connected(self) -> bool:
+        """Check if the client is connected to the server
+        
+        Returns:
+            bool: True if connected to the server
+        """
+        return self.session is not None and hasattr(self, 'tools') and len(self.tools) > 0
+        
+    def get_tools(self):
+        """Get a dictionary of all available tools from this client
+        
+        Returns:
+            Dictionary mapping tool names to tuples of (callable, description)
+        """
+        if not self.is_connected():
+            return {}
+            
+        tool_dict = {}
+        for tool in self.tools:
+            tool_name = tool['name']
+            tool_description = tool.get('description', 'No description available')
+            
+            # Create a wrapper function for this tool that properly captures tool_name in its scope
+            # This is crucial to avoid the common Python closure trap where all functions would use the last value
+            def create_tool_wrapper(name):
+                def tool_wrapper(input_str):
+                    # Properly bind to the specific tool name at wrapper creation time
+                    return asyncio.get_event_loop().run_until_complete(
+                        self.call_tool(name, {'input': input_str})
+                    )
+                return tool_wrapper
+                
+            # Add tool to dictionary with tuple of (function, description)
+            # Pass tool_name explicitly to create a new binding in the closure
+            wrapper_func = create_tool_wrapper(tool_name)
+            tool_dict[tool_name] = (wrapper_func, tool_description)
+            
+        return tool_dict
+        
 
 
     async def call_tool(self, tool_name: str, input: dict) -> dict:
@@ -104,14 +143,18 @@ class MCPClient:
                 self.stdio = None
                 self.write = None
                 
-                # Now close the exit stack
+                # Now close the exit stack - SAFELY using try/except
+                # The key fix: Don't use wait_for on the exit stack as it can create task conflicts
                 try:
-                    # Use a short timeout to avoid blocking
-                    await asyncio.wait_for(self.exit_stack.aclose(), timeout=1.0)
-                except asyncio.TimeoutError:
-                    print("Exit stack close timed out, forcing cleanup")
+                    # Instead of using wait_for, we'll directly close and handle any errors
+                    await self.exit_stack.aclose()
+                    print(f"Closed connection to server")
+                except asyncio.CancelledError:
+                    print("Exit stack close was cancelled")
                 except Exception as e:
+                    # This is the error we're handling: task/context management conflict
                     print(f"Exit stack close error: {str(e)}")
+                    # We'll proceed with cleanup anyway
             except asyncio.CancelledError:
                 print("Connection closing was cancelled, forcing cleanup")
             except Exception as e:

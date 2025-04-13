@@ -92,90 +92,37 @@ class ClientManager:
     
     def get_tools(self) -> Dict[str, Tuple[Callable, str]]:
         """
-        Get all available tools from connected clients in a format suitable for the ReAct agent.
+        Get all available tools from connected servers.
         
         Returns:
-            Dictionary of tool names to (tool_function, description) tuples
+            Dictionary mapping tool names to tuples of (function, description)
         """
         tools = {}
-        
-        # For each connected client, get its tools
         for server_name, client in self.connected_clients.items():
-            # Create a wrapper function to call the tool on this specific server
-            def create_tool_wrapper(server, tool_name):
-                def tool_wrapper(input_str):
-                    try:
-                        print(f"\n[Tool wrapper for {server}_{tool_name} called with input: {input_str}]")
-                        
-                        # Get the input schema for this tool to determine the correct parameter names
-                        input_schema = None
-                        for t in client.tools:
-                            if t['name'] == tool_name:
-                                input_schema = t.get('input_schema', {})
-                                break
-                        
-                        print(f"[Input schema for {tool_name}: {input_schema}]")
-                                
-                        # Parse the input string as JSON if it's a valid JSON string
-                        try:
-                            # Try to parse as JSON first
-                            input_params = json.loads(input_str)
-                            print(f"[Parsed input as JSON: {input_params}]")
-                        except json.JSONDecodeError:
-                            # If we have an input schema, use the first property as the parameter name
-                            if input_schema and isinstance(input_schema, dict) and 'properties' in input_schema:
-                                properties = input_schema.get('properties', {})
-                                if properties and len(properties) > 0:
-                                    # Use the first property name from the schema
-                                    first_param_name = next(iter(properties))
-                                    input_params = {first_param_name: input_str.strip()}
-                                    print(f"[Using schema property '{first_param_name}' for input]")
-                                else:
-                                    # Fallback to using the raw input string
-                                    input_params = {"input": input_str.strip()}
-                                    print("[No properties in schema, using 'input' as parameter name]")
-                            else:
-                                # Fallback to using the raw input string
-                                input_params = {"input": input_str.strip()}
-                                print("[No schema available, using 'input' as parameter name]")
-                        
-                        print(f"[Calling tool {tool_name} on server {server} with params: {input_params}]")
-                            
-                        # Create a new event loop for this call
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                        try:
-                            # Call the tool with the properly formatted parameters
-                            result = loop.run_until_complete(
-                                self.call_tool(server, tool_name, input_params)
-                            )
-                            print(f"[Tool {tool_name} returned result: {result}]")
-                            return result
-                        finally:
-                            loop.close()
-                    except Exception as e:
-                        error_msg = f"Error executing {tool_name}: {str(e)}"
-                        print(f"[Tool wrapper error: {error_msg}]")
-                        return {"error": error_msg}
-                return tool_wrapper
-            
-            # If the client has tools, add them to our tools dictionary
-            if hasattr(client, 'tools') and client.tools:
-                for tool in client.tools:
-                    tool_name = tool['name']
-                    tool_description = tool['description']
-                    
-                    # Create a unique name for the tool that includes the server name
-                    unique_tool_name = f"{server_name}|{tool_name}"
-                    
-                    # Create a wrapper function for this tool
-                    tool_func = create_tool_wrapper(server_name, tool_name)
-                    
-                    # Add the tool to our tools dictionary
-                    tools[unique_tool_name] = (tool_func, tool_description)
-                    #print(f"Added tool: {unique_tool_name}")
-                    
+            if client and hasattr(client, 'get_tools'):
+                server_tools = client.get_tools()
+                if server_tools:
+                    for name, (func, desc) in server_tools.items():
+                        full_name = f"{server_name}.{name}"
+                        tools[full_name] = (func, desc)
         return tools
+    
+    def is_connected(self, server_name: str) -> bool:
+        """
+        Check if a specific server is connected and operational.
+        
+        Args:
+            server_name: Name of the server to check
+            
+        Returns:
+            bool: True if server is connected and operational
+        """
+        return (
+            server_name in self.connected_clients and 
+            self.connected_clients[server_name] is not None and
+            hasattr(self.connected_clients[server_name], 'is_connected') and 
+            self.connected_clients[server_name].is_connected()
+        )
 
     async def create_clients(self) -> Dict[str, MCPClient]:
         """
@@ -184,24 +131,26 @@ class ClientManager:
         Returns:
             Dictionary of server names to MCPClient instances
         """
-        if not self.config:
-            await self.load_config()
-        
-        server_configs = self.config.get("mcpServers", {})
-        
-        for server_name, server_config in server_configs.items():
-            command = server_config.get("command", "")
-            args = server_config.get("args", [])
-            
+        # Create clients for each server in the config
+        for server_name, server_config in self.config.get("mcpServers", {}).items():
             try:
+                # Extract command and args from the server config
+                command = server_config.get("command")
+                args = server_config.get("args", [])
+                
+                if not command:
+                    raise ValueError(f"Missing 'command' in configuration for server {server_name}")
+                    
+                # Create a new client for this server
                 client = MCPClient(command=command, args=args)
                 self.clients[server_name] = client
                 print(f"Created client for server: {server_name}")
             except Exception as e:
                 print(f"Error creating client for server {server_name}: {str(e)}")
-        
+                self.clients[server_name] = None
+                
         return self.clients
-    
+
     async def connect_all_clients(self) -> Dict[str, MCPClient]:
         """
         Connect to all MCP servers.
@@ -214,15 +163,43 @@ class ClientManager:
             await self.load_config()
             await self.create_clients()
             
+        # We need to ensure each client connection runs in a fresh task
+        # This is crucial for proper asyncio handling, especially in FastAPI context
+        connect_tasks = []
+        
         for server_name, client in self.clients.items():
-            try:
-                await client.connect_to_server()
-                self.connected_clients[server_name] = client
-                print(f"Connected to server: {server_name}")
-            except Exception as e:
-                print(f"Error connecting to server {server_name}: {str(e)}")
+            if client is None:
+                continue
+                
+            # Create a task for each connection attempt
+            connect_task = asyncio.create_task(self._connect_client(server_name, client))
+            connect_tasks.append(connect_task)
+        
+        # Wait for all connections to complete
+        if connect_tasks:
+            await asyncio.gather(*connect_tasks, return_exceptions=True)
                 
         return self.connected_clients
+        
+    async def _connect_client(self, server_name: str, client: MCPClient) -> None:
+        """
+        Connect to a single MCP server with proper error handling.
+        
+        Args:
+            server_name: Name of the server
+            client: MCPClient instance to connect
+        """
+        try:
+            # Create a new task for connection to ensure proper asyncio handling
+            await client.connect_to_server()
+            # Update the connected clients dictionary only if the client is actually connected
+            if client.is_connected():
+                self.connected_clients[server_name] = client
+                print(f"Connected to server: {server_name}")
+            else:
+                print(f"Failed to establish a working connection to server: {server_name}")
+        except Exception as e:
+            print(f"Error connecting to server {server_name}: {str(e)}")
     
     async def close_all_clients(self) -> None:
         """
