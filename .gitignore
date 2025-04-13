@@ -1,5 +1,6 @@
 .venv
 
 __pycache__/*
-meta_cortex/__pycache__/*
+meta_cortex\__pycache__\*
 *.pyc
+*.cpypython-311.pyc
