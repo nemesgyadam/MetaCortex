@@ -33,7 +33,8 @@ DEFAULT_ENDURANCE = 5
 CLEANUP_DELAY_SECONDS = 0.5
 
 # Regex patterns
-ACTION_PATTERN = r'Action: \[(\w+)\|(\w+)(?:\|(.*))?\]'
+# More robust pattern to handle both server.tool and server.browser_navigate formats
+ACTION_PATTERN = r'Action: \[(\w+)(?:\.|\|)(\w+)(?:\|(.*))?\]'
 
 # File paths
 BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
