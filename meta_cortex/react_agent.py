@@ -33,7 +33,7 @@ DEFAULT_ENDURANCE = 5
 CLEANUP_DELAY_SECONDS = 0.5
 
 # Regex patterns
-ACTION_PATTERN = r'Action: \[(\w+)\|(\w+)(?:\|(.*))?\]'
+ACTION_PATTERN = r'Action: \[([^|]+)\|(.*)\]'
 
 # File paths
 BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -425,28 +425,48 @@ class ReActAgent:
         if agent_persona:
             self.system_prompt += agent_persona
     
-    async def _parse_action_args(self, action_args: Optional[str]) -> Dict[str, str]:
+    async def _parse_action_args(self, action_args: Optional[str]) -> Dict[str, Any]:
         """
         Parse action arguments from a string into a dictionary.
+        Handles potential multiple colons in values and attempts type conversion.
         
         Args:
-            action_args: String containing action arguments
+            action_args: String containing action arguments (e.g., "lat:47.5,lon:19.1,note:city:center")
             
         Returns:
-            Dictionary of parsed arguments
+            Dictionary of parsed arguments with potential type conversion.
         """
         args = {}
         if not action_args:
             return args
-            
-        if "," in action_args:
-            for arg in action_args.split(", "):
-                key, value = arg.split(":")
+        
+        # Split parameters by comma
+        param_pairs = action_args.split(',') 
+        for pair in param_pairs:
+            # Split each parameter into key and value by the FIRST colon only
+            key_value = pair.split(':', 1)
+            if len(key_value) == 2:
+                key = key_value[0].strip()
+                value_str = key_value[1].strip()
+                # Attempt to convert value to float or int, otherwise keep as string
+                try:
+                    # Prioritize float conversion for lat/lon type values
+                    value = float(value_str)
+                    # Convert to int if it's a whole number
+                    if value.is_integer():
+                        value = int(value)
+                except ValueError:
+                    value = value_str # Keep as string if conversion fails
                 args[key] = value
-        else:
-            key = action_args.split(":")[0]
-            value = ":".join(action_args.split(":")[1:])
-            args[key] = value
+            elif len(key_value) == 1 and key_value[0].strip(): # Handle case of key with no value?
+                 # Decide how to handle keys without values (e.g., flags)
+                 # Option 1: Assign a default value (e.g., True)
+                 # args[key_value[0].strip()] = True 
+                 # Option 2: Log a warning/error
+                 self.logger.log(f"Parameter '{key_value[0].strip()}' has no value.", LogLevel.WARNING)
+                 # Option 3: Ignore it (current behavior by not adding to dict)
+                 pass
+            # Implicitly ignore empty strings resulting from trailing commas, etc.
             
         return args
     
@@ -473,12 +493,20 @@ class ReActAgent:
             return current_prompt, False
             
         # Extract action components
-        server_name = action_match.group(1)
-        action_name = action_match.group(2)
-        action_args = action_match.group(3)
+        full_tool_name = action_match.group(1).strip() # Get full tool name (e.g., "wolt.list_italian_restaurants")
+        params_str = action_match.group(2).strip()     # Get raw parameters string (e.g., "lat:47.4979937,lon:19.0403594")
+
+        # Split tool name (assuming format server.action)
+        try:
+            server_name, action_name = full_tool_name.split('.', 1)
+        except ValueError:
+            # Handle cases where the tool name doesn't contain a '.' separator
+            self.logger.log(f"Could not split tool name '{full_tool_name}' into server and action.", LogLevel.ERROR)
+            # Depending on desired behavior, you might want to raise an error or return differently
+            return current_prompt, False
         
-        # Parse arguments and call the action
-        args = await self._parse_action_args(action_args)
+        # Parse arguments using the raw parameter string
+        args = await self._parse_action_args(params_str)
         
         # Log the action being taken
         self.logger.action(server_name, action_name, args)

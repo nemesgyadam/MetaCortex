@@ -12,5 +12,10 @@
           "N:/"
         ]
       }
+    },
+    "wolt": {
+      "command": "python",
+      "args": [
+        "../wolt/wolt.py"
     }
   }
