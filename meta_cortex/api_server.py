@@ -18,10 +18,23 @@ from functools import partial
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.ERROR,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+
+# Set root logger to ERROR to catch all other loggers
+logging.getLogger().setLevel(logging.ERROR)
+
+# Get API server logger
 logger = logging.getLogger("metacortex.api")
+
+# Set all specific loggers to ERROR level
+logging.getLogger("uvicorn").setLevel(logging.ERROR)
+logging.getLogger("fastapi").setLevel(logging.ERROR)
+logging.getLogger("mcp").setLevel(logging.ERROR)
+logging.getLogger("playwright").setLevel(logging.ERROR)
+logging.getLogger("filesystem").setLevel(logging.ERROR)
+logging.getLogger("client_manager").setLevel(logging.ERROR)
 
 # Define lifespan context manager for app startup/shutdown events
 @asynccontextmanager
@@ -108,7 +121,8 @@ def initialize_agent() -> ReActAgent:
         agent_name="APIAgent",
         config_path=config_path,
         agent_config_path=agent_config_path,
-        verbose=True
+        verbose=True,
+        concise_mode=True
     )
     
     try:
@@ -308,4 +322,34 @@ async def list_tasks() -> List[TaskResponse]:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("api_server:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "api_server:app", 
+        host="0.0.0.0", 
+        port=8000, 
+        reload=True,
+        log_level="error",
+        access_log=False,
+        log_config={
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "default": {
+                    "()": "uvicorn.logging.DefaultFormatter",
+                    "fmt": "%(levelprefix)s %(message)s",
+                    "use_colors": True,
+                }
+            },
+            "handlers": {
+                "default": {
+                    "formatter": "default",
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://sys.stderr",
+                }
+            },
+            "loggers": {
+                "uvicorn": {"handlers": ["default"], "level": "ERROR"},
+                "uvicorn.error": {"handlers": ["default"], "level": "ERROR"},
+                "uvicorn.access": {"handlers": ["default"], "level": "ERROR", "propagate": False},
+            }
+        }
+    )

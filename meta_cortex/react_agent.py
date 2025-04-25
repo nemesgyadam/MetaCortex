@@ -61,18 +61,31 @@ class LogLevel(Enum):
 class AgentLogger:
     """Fancy console logger for agent operations with colored output and formatting."""
     
-    def __init__(self, agent_name: str = "ReActAgent", show_timestamps: bool = True):
+    def __init__(self, agent_name: str = "ReActAgent", show_timestamps: bool = True, concise_mode: bool = False):
         """
         Initialize the agent logger.
         
         Args:
             agent_name: Name of the agent for log prefixing
             show_timestamps: Whether to include timestamps in log messages
+            concise_mode: If True, only show essential logs (THOUGHT, ACTION, OBSERVATION, RESPONSE, ERROR, CRITICAL, SUCCESS)
         """
         self.agent_name = agent_name
         self.show_timestamps = show_timestamps
+        self.concise_mode = concise_mode
         self.start_time = time.time()
         self.step_count = 0
+        
+        # Define which log levels to show in concise mode
+        self.concise_log_levels = [
+            LogLevel.THOUGHT,
+            LogLevel.ACTION,
+            LogLevel.OBSERVATION,
+            LogLevel.RESPONSE,
+            LogLevel.ERROR,
+            LogLevel.CRITICAL,
+            LogLevel.SUCCESS
+        ]
         
     def _get_timestamp(self) -> str:
         """
@@ -104,6 +117,10 @@ class AgentLogger:
             level: The log level to use for formatting
             increment_step: Whether to increment the step counter
         """
+        # In concise mode, skip logs that aren't in the concise_log_levels list
+        if self.concise_mode and level not in self.concise_log_levels:
+            return
+            
         color, label = level.value
         
         if increment_step:
@@ -122,6 +139,10 @@ class AgentLogger:
         Args:
             title: The section title
         """
+        # In concise mode, only show FINAL ANSWER section headers
+        if self.concise_mode and title != "FINAL ANSWER":
+            return
+            
         width = 80
         padding = (width - len(title) - 4) // 2
         print(f"\n{Fore.CYAN}{Style.BRIGHT}{'-' * padding} {title} {'-' * padding}{Style.RESET_ALL}\n")
@@ -288,7 +309,8 @@ class ReActAgent:
         config_path: str = None,
         agent_config_path: str = None,
         agent_name: str = None,
-        verbose: bool = True
+        verbose: bool = True,
+        concise_mode: bool = False
     ):
         """
         Initialize the ReAct agent.
@@ -299,7 +321,8 @@ class ReActAgent:
             config_path: Path to MCP configuration file
             agent_config_path: Path to agent configuration YAML file
             agent_name: Custom name for the agent (used in logging)
-            verbose: Whether to show detailed logging
+            verbose: Whether to output detailed logs
+            concise_mode: If True, only show essential logs (THOUGHT, ACTION, OBSERVATION, RESPONSE, ERROR, CRITICAL, SUCCESS)
         """
         # Initialize with paths
         self.config_path = Path(config_path) if config_path else DEFAULT_CONFIG_PATH
@@ -307,7 +330,8 @@ class ReActAgent:
         
         # Configure logging
         self.verbose = verbose
-        self.logger = AgentLogger(agent_name or "ReActAgent")
+        self.concise_mode = concise_mode
+        self.logger = AgentLogger(agent_name or "ReActAgent", show_timestamps=True, concise_mode=concise_mode)
         
         # These will be populated during initialization
         self.client_manager = None
@@ -333,7 +357,8 @@ class ReActAgent:
             endurance: Maximum reasoning turns (overrides config)
         """
         # Create client manager with provided config path
-        self.client_manager = ClientManager(str(self.config_path))
+        # Pass verbose=False to hide MCP-related logs
+        self.client_manager = ClientManager(str(self.config_path), verbose=False)
         
         # Load agent configuration
         self.agent_config = AgentConfig(str(self.agent_config_path))
@@ -548,7 +573,7 @@ class ReActAgent:
                 # Clean up before retry
                 if self.client_manager:
                     self.loop.run_until_complete(self.client_manager.close_all_clients())
-                    self.client_manager = ClientManager(self.config_path)
+                    self.client_manager = ClientManager(self.config_path, verbose=self.verbose)
                 # Wait a bit before retrying
                 self.loop.run_until_complete(asyncio.sleep(1.0))
         

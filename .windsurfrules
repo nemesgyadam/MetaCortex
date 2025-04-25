@@ -14,3 +14,5 @@ Dont ever change the used technology without asking first.
 Don't write any hardcoded result. Always ensure that the solution is actually working.
 
 Use the .venv enviroment. 
+
+Never run fastapi apps! 

@@ -33,13 +33,14 @@ class ClientManager:
     Creates and maintains connections to multiple MCP servers.
     """
     
-    def __init__(self, config_file_path: Optional[str] = None):
+    def __init__(self, config_file_path: Optional[str] = None, verbose: bool = False):
         """
         Initialize the client manager with a configuration file path.
         
         Args:
             config_file_path: Path to the JSON configuration file.
                              If None, defaults to mcp_config.json in the meta_cortex directory.
+            verbose: If True, print detailed logs about operations. If False, suppress most logs.
         """
         # Set default config path if none provided
         if config_file_path is None:
@@ -48,6 +49,7 @@ class ClientManager:
         else:
             self.config_file_path = config_file_path
             
+        self.verbose = verbose  # Store the verbose flag
         self.config: Dict[str, Any] = {}  # The loaded configuration
         self.clients: Dict[str, MCPClient] = {}  # server_name -> client
         self.connected_clients: Dict[str, MCPClient] = {}
@@ -67,18 +69,22 @@ class ClientManager:
         try:
             # Check if file exists
             if not os.path.exists(self.config_file_path):
-                print(f"Configuration file {self.config_file_path} does not exist")
+                if self.verbose:
+                    print(f"Configuration file {self.config_file_path} does not exist")
                 return {}
                 
             with open(self.config_file_path, 'r') as f:
                 self.config = json.load(f)
-                print(f"Loaded MCP configuration from {self.config_file_path}")
+                if self.verbose:
+                    print(f"Loaded MCP configuration from {self.config_file_path}")
                 return self.config
         except json.JSONDecodeError:
-            print(f"Error parsing JSON in {self.config_file_path}")
+            if self.verbose:
+                print(f"Error parsing JSON in {self.config_file_path}")
             return {}
         except Exception as e:
-            print(f"Error loading configuration file {self.config_file_path}: {str(e)}")
+            if self.verbose:
+                print(f"Error loading configuration file {self.config_file_path}: {str(e)}")
             return {}
     
     def get_server_names(self) -> List[str]:
@@ -144,9 +150,11 @@ class ClientManager:
                 # Create a new client for this server
                 client = MCPClient(command=command, args=args)
                 self.clients[server_name] = client
-                print(f"Created client for server: {server_name}")
+                if self.verbose:
+                    print(f"Created client for server: {server_name}")
             except Exception as e:
-                print(f"Error creating client for server {server_name}: {str(e)}")
+                if self.verbose:
+                    print(f"Error creating client for server {server_name}: {str(e)}")
                 self.clients[server_name] = None
                 
         return self.clients
@@ -195,11 +203,14 @@ class ClientManager:
             # Update the connected clients dictionary only if the client is actually connected
             if client.is_connected():
                 self.connected_clients[server_name] = client
-                print(f"Connected to server: {server_name}")
+                if self.verbose:
+                    print(f"Connected to server: {server_name}")
             else:
-                print(f"Failed to establish a working connection to server: {server_name}")
+                if self.verbose:
+                    print(f"Failed to establish a working connection to server: {server_name}")
         except Exception as e:
-            print(f"Error connecting to server {server_name}: {str(e)}")
+            if self.verbose:
+                print(f"Error connecting to server {server_name}: {str(e)}")
     
     async def close_all_clients(self) -> None:
         """
@@ -215,9 +226,11 @@ class ClientManager:
                     # Use a simple try-except block instead of tasks
                     await self._close_client(server_name, client)
                 except Exception as e:
-                    print(f"Error closing client {server_name}: {str(e)}")
+                    if self.verbose:
+                        print(f"Error closing client {server_name}: {str(e)}")
             else:
-                print(f"Client {server_name} has no exit_stack, skipping close")
+                if self.verbose:
+                    print(f"Client {server_name} has no exit_stack, skipping close")
         
         # Clear the client dictionaries after all closing attempts
         self.clients = {}
@@ -234,9 +247,11 @@ class ClientManager:
         try:
             # Use a shield to prevent cancellation from propagating
             await asyncio.shield(client.close())
-            print(f"Closed connection to server: {server_name}")
+            if self.verbose:
+                print(f"Closed connection to server: {server_name}")
         except asyncio.CancelledError:
-            print(f"Closing of {server_name} was cancelled, continuing cleanup")
+            if self.verbose:
+                print(f"Closing of {server_name} was cancelled, continuing cleanup")
             # Force cleanup of client resources
             if hasattr(client, 'exit_stack'):
                 client.exit_stack = None
@@ -247,7 +262,8 @@ class ClientManager:
             if hasattr(client, 'write'):
                 client.write = None
         except Exception as e:
-            print(f"Error closing connection to server {server_name}: {str(e)}")
+            if self.verbose:
+                print(f"Error closing connection to server {server_name}: {str(e)}")
             # Force cleanup of client resources
             if hasattr(client, 'exit_stack'):
                 client.exit_stack = None
@@ -270,7 +286,8 @@ class ClientManager:
         Returns:
             Result of the tool call
         """
-        print(f"[Client manager calls tool {tool_name} on server {server_name}]")
+        if self.verbose:
+            print(f"[Client manager calls tool {tool_name} on server {server_name}]")
         # # Make sure we have connected clients
         # if not self.connected_clients:
         #     await self.connect_all_clients()
@@ -285,7 +302,8 @@ class ClientManager:
             return result
         except Exception as e:
             error_msg = f"Error calling tool {tool_name} on server {server_name}: {str(e)}"
-            print(error_msg)
+            if self.verbose:
+                print(error_msg)
             return {"error": error_msg}
 
 async def main():
