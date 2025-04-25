@@ -8,8 +8,7 @@
       "filesystem": {
         "command": "npx",
         "args": ["@modelcontextprotocol/server-filesystem",
-          "C:/Code",
-          "N:/"
+          "C:/Code"
         ]
       }
     },

@@ -11,7 +11,7 @@ import shutil
 load_dotenv()  # load environment variables from .env
 
 class MCPClient:
-    def __init__(self, command, args):
+    def __init__(self, command, args, verbose=False):
         # Initialize session and client objects
         
         if command == "python":
@@ -22,6 +22,7 @@ class MCPClient:
             raise ValueError("Invalid command: must be 'python' or 'npx'")
 
         self.args = args
+        self.verbose = verbose  # Store the verbose flag
         self.session: Optional[ClientSession] = None
         self.exit_stack: Optional[AsyncExitStack] = None
         self.stdio = None
@@ -121,7 +122,8 @@ class MCPClient:
     
             return result
         except Exception as e:
-            print(f"Error calling tool '{tool_name}': {str(e)}")
+            if self.verbose:
+                print(f"Error calling tool '{tool_name}': {str(e)}")
             return {"error": str(e)}
     
    
@@ -148,17 +150,22 @@ class MCPClient:
                 try:
                     # Instead of using wait_for, we'll directly close and handle any errors
                     await self.exit_stack.aclose()
-                    print(f"Closed connection to server")
+                    if self.verbose:
+                        print(f"Closed connection to server")
                 except asyncio.CancelledError:
-                    print("Exit stack close was cancelled")
+                    if self.verbose:
+                        print("Exit stack close was cancelled")
                 except Exception as e:
                     # This is the error we're handling: task/context management conflict
-                    print(f"Exit stack close error: {str(e)}")
+                    if self.verbose:
+                        print(f"Exit stack close error: {str(e)}")
                     # We'll proceed with cleanup anyway
             except asyncio.CancelledError:
-                print("Connection closing was cancelled, forcing cleanup")
+                if self.verbose:
+                    print("Connection closing was cancelled, forcing cleanup")
             except Exception as e:
-                print(f"Error during connection cleanup: {str(e)}")
+                if self.verbose:
+                    print(f"Error during connection cleanup: {str(e)}")
             finally:
                 # Ensure all resources are cleared
                 self.exit_stack = None
