@@ -11,5 +11,10 @@
           "C:/Code"
         ]
       }
+    },
+    "wolt": {
+      "command": "python",
+      "args": [
+        "../wolt/wolt.py"
     }
   }
