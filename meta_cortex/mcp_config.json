@@ -8,23 +8,18 @@
       "filesystem": {
         "command": "npx",
         "args": ["@modelcontextprotocol/server-filesystem",
-          "C:/Code"
+          "/Users/spatr/Documents/Suli/MetaCortex"
         ]
       },
       "wolt": {
         "command": "python",
         "args": [
-          "wolt/wolt.py"
+          "../wolt/wolt.py",
+          "--auth-token",
+          "<AUTH_TOKEN>",
+          "--session-id",
+          "<SESSION_ID>"
         ]
-    },
-    "Google Calendar": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "supergateway",
-        "--sse",
-        "https://mcp.pipedream.net/53f37c39-e2de-4e47-952f-78a9b8037e85/google_calendar"
-      ]
     }
   }
 }
