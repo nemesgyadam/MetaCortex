@@ -93,6 +93,206 @@ async def list_italian_restaurants(lat: float, lon: float) -> str:
         log.exception(f"An unexpected error occurred while fetching restaurants: {e}")  # Use log.exception to include traceback
         return f"An unexpected error occurred while fetching restaurants: {e}"
 
+@mcp.tool()
+async def wolt_venue_list(location_code: str, latlng: str = None, open_now: bool = None) -> dict:
+    """List venues that deliver to a location code. Optionally filter by latlng and openNow."""
+    url = f"{WOLT_API_BASE}/v1/pages/venue-list/{location_code}"
+    params = {}
+    if latlng:
+        params["latlng"] = latlng
+    if open_now is not None:
+        params["openNow"] = str(open_now).lower()
+    headers = {"accept": "application/json"}
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, params=params, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            return resp.json()
+    except Exception as e:
+        log.exception(f"Failed to fetch venue list: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def wolt_venue_profile(slug: str, language: str = None) -> dict:
+    """Get full venue profile (hero images, tagline, badges, etc)."""
+    url = f"{WOLT_API_BASE}/consumer-api/venue-content-api/v3/web/venue-content/slug/{slug}"
+    params = {}
+    if language:
+        params["language"] = language
+    headers = {"accept": "application/json"}
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, params=params, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            return resp.json()
+    except Exception as e:
+        log.exception(f"Failed to fetch venue profile: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def wolt_venue_menu(slug: str, language: str = None) -> dict:
+    """Get full menu (categories + items) for a venue."""
+    url = f"{WOLT_API_BASE}/consumer-api/consumer-assortment/v1/venues/slug/{slug}/assortment"
+    params = {}
+    if language:
+        params["language"] = language
+    headers = {"accept": "application/json"}
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, params=params, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            return resp.json()
+    except Exception as e:
+        log.exception(f"Failed to fetch venue menu: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def wolt_menu_items(slug: str, item_ids: list = None, language: str = None) -> dict:
+    """Fetch one or more specific menu items by ID for a venue."""
+    url = f"{WOLT_API_BASE}/consumer-api/consumer-assortment/v1/venues/slug/{slug}/assortment/items"
+    params = {}
+    if item_ids:
+        params["item_ids"] = ",".join(item_ids)
+    if language:
+        params["language"] = language
+    headers = {"accept": "application/json"}
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, params=params, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            return resp.json()
+    except Exception as e:
+        log.exception(f"Failed to fetch menu items: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def wolt_create_basket(venue_id: str, items: list, currency: str = None) -> dict:
+    """Create a new basket for a venue and initial items."""
+    url = f"{WOLT_API_BASE}/order-xp/v1/baskets"
+    payload = {"venue_id": venue_id, "items": items}
+    if currency:
+        payload["currency"] = currency
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(url, json=payload, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            return resp.json()
+    except Exception as e:
+        log.exception(f"Failed to create basket: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def wolt_get_basket(basket_id: str) -> dict:
+    """Retrieve a basket by basketId."""
+    url = f"{WOLT_API_BASE}/order-xp/v1/baskets/{basket_id}"
+    headers = {"accept": "application/json"}
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            return resp.json()
+    except Exception as e:
+        log.exception(f"Failed to retrieve basket: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def wolt_basket_count() -> dict:
+    """Get number of active baskets for current user."""
+    url = f"{WOLT_API_BASE}/order-xp/v1/baskets/count"
+    headers = {"accept": "application/json"}
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            return resp.json()
+    except Exception as e:
+        log.exception(f"Failed to get basket count: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def wolt_checkout(purchase_plan: dict) -> dict:
+    """Finalise checkout and place the order."""
+    url = f"{WOLT_API_BASE}/order-xp/web/v2/pages/checkout"
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(url, json=purchase_plan, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            return resp.json()
+    except Exception as e:
+        log.exception(f"Failed to checkout: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def wolt_past_orders(cursor: str = None) -> dict:
+    """List the user’s past orders (paginated, newest first)."""
+    url = f"{WOLT_API_BASE}/order-xp/web/v1/pages/orders"
+    params = {}
+    if cursor:
+        params["cursor"] = cursor
+    headers = {"accept": "application/json"}
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, params=params, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            return resp.json()
+    except Exception as e:
+        log.exception(f"Failed to fetch past orders: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def wolt_geocode_address(place_id: str) -> dict:
+    """Resolve Google Place ID to street address."""
+    url = f"{WOLT_API_BASE}/v1/google/geocode-address"
+    params = {"place_id": place_id}
+    headers = {"accept": "application/json"}
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, params=params, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            return resp.json()
+    except Exception as e:
+        log.exception(f"Failed to geocode address: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+async def wolt_order_tracking(order_id: str) -> dict:
+    """Get live tracking data for an order."""
+    url = f"{WOLT_API_BASE}/order-xp/v1/pages/order-tracking/{order_id}"
+    headers = {"accept": "application/json"}
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            return resp.json()
+    except Exception as e:
+        log.exception(f"Failed to get order tracking: {e}")
+        return {"error": str(e)}
+
+
+@mcp.tool()
+async def wolt_bulk_delete_baskets(ids: list) -> dict:
+    """Delete multiple baskets in one call.
+    Args:
+        ids: List of basket IDs to delete.
+    Returns:
+        API response as a dict.
+    """
+    url = f"{WOLT_API_BASE}/order-xp/v1/baskets/bulk/delete"
+    payload = {"ids": ids}
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(url, json=payload, headers=headers, timeout=30.0)
+            resp.raise_for_status()
+            # This endpoint may return an empty body on success
+            if resp.content:
+                return resp.json()
+            return {"success": True}
+    except Exception as e:
+        log.exception(f"Failed to bulk delete baskets: {e}")
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     # Initialize and run the server
