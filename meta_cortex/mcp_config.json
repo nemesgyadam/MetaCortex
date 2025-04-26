@@ -10,11 +10,21 @@
         "args": ["@modelcontextprotocol/server-filesystem",
           "C:/Code"
         ]
-      }
+      },
+      "wolt": {
+        "command": "python",
+        "args": [
+          "wolt/wolt.py"
+        ]
     },
-    "wolt": {
-      "command": "python",
+    "Google Calendar": {
+      "command": "npx",
       "args": [
-        "../wolt/wolt.py"
+        "-y",
+        "supergateway",
+        "--sse",
+        "https://mcp.pipedream.net/53f37c39-e2de-4e47-952f-78a9b8037e85/google_calendar"
+      ]
     }
   }
+}

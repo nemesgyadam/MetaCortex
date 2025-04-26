@@ -1,0 +1,131 @@
+{
+  "created": {                  // Object: Information about when the data was created
+    "$date": Number           // Number: Timestamp (likely milliseconds since epoch, BSON Date format)
+  },
+  "expires_in_seconds": Number, // Number: Duration in seconds until the data might be considered stale
+  "filtering": {                // Object: Contains available filters for the venues
+    "filters": [              // Array<Object>: List of filter types
+      {
+        "id": String,         // String: Unique identifier for the filter type (e.g., "primary", "price-range")
+        "name": String,       // String: Display name for the filter type (e.g., "", "Price")
+        "type": String,       // String: Type of filter control (e.g., "multi-select")
+        "values": [           // Array<Object>: List of possible filter values
+          {
+            "id": String,     // String: Unique identifier for the filter value (e.g., "pizza", "price-range-1")
+            "name": String    // String: Display name for the filter value (e.g., "Pizza", "$")
+          }
+        ]
+      }
+    ]
+  },
+  "how_search_works_link": {    // Object: Details for the "How Search Works" icon link
+    "type": String,           // String: Type of link presentation (e.g., "icon-only")
+    "url": String             // String: URL the link points to
+  },
+  "how_search_works_url": String, // String: URL for the "How Search Works" information
+  "name": String,               // String: Internal name or identifier for this data view (e.g., "restaurants")
+  "page_title": String,         // String: Title displayed on the page (e.g., "Restaurants")
+  "sections": [                 // Array<Object>: Different content sections displayed on the page
+    // --- Section Type 1: Venue Category List (example: "Categories") ---
+    {
+      "content_id": String,     // String: Unique ID for this section content
+      "content_type": String,   // String: Type identifier, e.g., "venue_category"
+      "end_of_section": {       // Object: Defines interaction at the end of the section (if horizontally scrolled)
+        "link": {             // Object: Link details
+          "target": String,     // String: Target identifier for the link
+          "target_sort": String,// String: Sorting parameter for the target view
+          "target_title": String,// String: Title for the target view (often empty)
+          "telemetry_object_id": String, // String: ID for tracking/analytics
+          "title": String,      // String: Link display text (often empty)
+          "type": String,       // String: Type of link target (e.g., "category-list")
+          "view_name": String   // String: Name of the target view (e.g., "venue_category_list")
+        },
+        "type": String          // String: Type of end-of-section indicator (e.g., "expand-arrow-swipe")
+      },
+      "hide_delivery_info": Boolean, // Boolean: Whether to hide delivery info for items in this section
+      "items": [                // Array<Object>: List of category items
+        {
+          "content_id": String, // String: Unique ID for the category item
+          "description": String, // String: Description (often empty)
+          "image": {            // Object: Image details
+            "blurhash": String, // String: Blurhash string for image placeholder
+            "url": String       // String: URL of the category image
+          },
+          "link": {             // Object: Link details for the category item (similar structure to end_of_section.link)
+            "target": String,
+            "target_sort": String,
+            "target_title": String,
+            "title": String,
+            "type": String,
+            "view_name": String
+            // Note: telemetry_object_id is usually on the item level, not nested here
+          },
+          "quantity": Number,     // Number: Count of venues in this category
+          "quantity_str": String, // String: Display string for the quantity (e.g., "243 places")
+          "telemetry_object_id": String, // String: ID for tracking/analytics
+          "template": String,     // String: Display template for the item (e.g., "square-title-bottom")
+          "title": String,        // String: Category title (e.g., "Burger")
+          "track_id": String      // String: Tracking ID for the category
+        }
+      ],
+      "link": {                 // Object: Link for "See all" (similar structure to end_of_section.link)
+        "target": String,
+        "target_sort": String,
+        "target_title": String,
+        "telemetry_object_id": String,
+        "title": String,
+        "type": String,
+        "view_name": String
+      },
+      "name": String,           // String: Name/identifier for this section (e.g., "category-list")
+      "template": String,         // String: Overall template for the section (e.g., "banner-small")
+      "title": String           // String: Title of the section (e.g., "Categories")
+    },
+    // --- Section Type 2: Venue List (example: "All restaurants") ---
+    {
+      "content_id": String,     // String: Unique ID for this section content
+      "hide_delivery_info": Boolean, // Boolean: Whether to hide delivery info for items in this section
+      "items": [                // Array<Object>: List of venue items
+        {
+          "filtering": {        // Object: Applied filters for this specific venue
+            "filters": [        // Array<Object>: List of filter categories applied
+              {
+                "id": String,   // String: Filter category ID (e.g., "primary", "price-range")
+                "values": [String] // Array<String>: List of filter value IDs applied (e.g., ["burgers", "american"])
+              }
+            ]
+          },
+          "image": {            // Object: Image details for the venue card
+            "blurhash": String, // String: Blurhash string
+            "url": String       // String: URL of the venue card image
+          },
+          "link": {             // Object: Link details for the venue item
+            "selected_delivery_method": String, // String: Default delivery method shown (e.g., "homedelivery")
+            "target": String,   // String: Venue ID
+            "target_sort": String, // String: Sorting parameter for the target view
+            "target_title": String, // String: Title for the target view (often empty)
+            "title": String,    // String: Link display text (often empty)
+            "type": String,     // String: Type of link target (e.g., "venue-id")
+            "venue_mainimage_blurhash": String, // String: Blurhash for the venue's main page image
+            "view_name": String // String: Name of the target view (e.g., "venue")
+             // Note: telemetry_object_id is usually on the item level, not nested here
+          },
+          "overlay": String | Null, // String | Null : Optional text overlay (e.g., "Temporarily offline", "Closed")
+          "overlay_v2": {        // Object | Null : Optional structured overlay information
+              "icon": String | Null, // String | Null : Icon name (e.g., "clock", "pickup_person")
+              "primary_text": String, // String: Main text of the overlay (e.g., "Schedule order", "Closed")
+              "secondary_text": String | Null, // String | Null : Secondary text (e.g., "Temporarily offline", "Opens Monday")
+              "telemetry_status": String, // String: Telemetry identifier for the overlay status
+              "variant": String // String: Display variant (e.g., "footer", "full")
+          } | Null,
+          "sorting": {          // Object: Sorting values specific to this venue
+            "sortables": [      // Array<Object>: List of sortable attributes and their values
+              {
+                "id": String,   // String: Sortable attribute ID (e.g., "delivery-price", "rating")
+                "value": Number // Number: Value for this attribute for this venue
+              }
+            ]
+          },
+          "telemetry_object_id": String, // String: ID for tracking/analytics
+          "telemetry_venue_badges": [String], // Array<String>: List of badges for telemetry (e.g., ["manually_curated", "new"])
+          "template": String,   // String: Display template for the venue item (e.g., "venue-large", "venue-vertical

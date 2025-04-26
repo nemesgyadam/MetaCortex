@@ -1,0 +1,5 @@
+2025-04-26 15:07:37,764 - __main__ - INFO - Starting Wolt MCP server... Logging to console and C:\Code\MetaCortex_v1\wolt\logs\wolt_mcp_server_20250426_150737.log
+2025-04-26 15:07:37,776 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2025-04-26 15:07:42,578 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2025-04-26 15:07:42,902 - httpx - INFO - HTTP Request: POST https://consumer-api.wolt.com/order-xp/v1/baskets "HTTP/1.1 401 Unauthorized"
+2025-04-26 15:09:53,307 - __main__ - INFO - Server stopped

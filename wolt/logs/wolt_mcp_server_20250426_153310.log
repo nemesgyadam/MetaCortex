@@ -1,0 +1,18 @@
+2025-04-26 15:33:10,051 - mcp.server.lowlevel.server - DEBUG - Initializing server 'wolt'
+2025-04-26 15:33:10,052 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListToolsRequest
+2025-04-26 15:33:10,052 - mcp.server.lowlevel.server - DEBUG - Registering handler for CallToolRequest
+2025-04-26 15:33:10,052 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListResourcesRequest
+2025-04-26 15:33:10,052 - mcp.server.lowlevel.server - DEBUG - Registering handler for ReadResourceRequest
+2025-04-26 15:33:10,052 - mcp.server.lowlevel.server - DEBUG - Registering handler for PromptListRequest
+2025-04-26 15:33:10,053 - mcp.server.lowlevel.server - DEBUG - Registering handler for GetPromptRequest
+2025-04-26 15:33:10,053 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListResourceTemplatesRequest
+2025-04-26 15:33:10,073 - __main__ - INFO - Starting Wolt MCP server... Logging to console and C:\Code\MetaCortex_v1\wolt\logs\wolt_mcp_server_20250426_153310.log
+2025-04-26 15:33:10,074 - __main__ - DEBUG - Using AUTH_TOKEN: ******
+2025-04-26 15:33:10,074 - __main__ - DEBUG - Using SESSION_ID: 46d17e71-e323-460b-af03-7fc7c68ac653
+2025-04-26 15:33:10,078 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-04-26 15:33:10,085 - mcp.server.lowlevel.server - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=NotificationParams(meta=None), jsonrpc='2.0')
+2025-04-26 15:33:10,086 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x0000026070DAFC90>
+2025-04-26 15:33:10,086 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2025-04-26 15:33:10,086 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type ListToolsRequest
+2025-04-26 15:33:10,088 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-04-26 15:34:33,109 - __main__ - INFO - Server stopped

@@ -126,7 +126,8 @@ def _parse_restaurant_data(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                             "rating_volume": venue.get("rating", {}).get("volume", "N/A"),
                             "price_range": venue.get("price_range", "N/A"),
                             "online": True,  # Already filtered for online
-                            "slug": venue.get("slug", "N/A")
+                            "slug": venue.get("slug", "N/A"),
+                            "venue_id": venue.get("id", "N/A")
                         }
                         restaurants.append(restaurant_info)
     return restaurants
@@ -142,7 +143,7 @@ def _format_restaurant_output(restaurants: List[Dict[str, Any]]) -> str:
     for i, r in enumerate(restaurants[:10]):  # Limit to top 10
         price_str = '$' * r['price_range'] if isinstance(r['price_range'], int) else 'N/A'
         output_lines.append(
-            f"  {i + 1}. {r['name']} (Rating: {r['rating_score']}/{r['rating_volume']}, Price: {price_str}, Address: {r['address']}, Slug: {r['slug']})"
+            f"  {i + 1}. {r['name']} (Rating: {r['rating_score']}/{r['rating_volume']}, Price: {price_str}, Address: {r['address']}, Slug: {r['slug']}, Venue ID: {r['venue_id']})"
         )
     return "\n".join(output_lines)
 
@@ -173,7 +174,7 @@ def get_auth_headers(language: str = "en", client_id: str = "web") -> Dict[str, 
         headers["X-Session-Id"] = SESSION_ID
         
     if AUTH_TOKEN:
-        headers["Authorization"] = f"Bearer {AUTH_TOKEN}"
+        headers["Authorization"] = "Bearer "+AUTH_TOKEN
         
     return headers
 
@@ -405,9 +406,9 @@ async def create_basket(
         "currency": "HUF"  # Example for Hungary, change if needed
     }
     
-    print(f"Making request to {url}")
-    print(f"Headers: {headers}")
-    print(f"Request data: {data}")
+    log.info(f"Making request to {url}")
+    log.debug(f"Headers: {headers}")
+    log.debug(f"Request data: {data}")
     
     try:
         async with httpx.AsyncClient() as client:
@@ -417,9 +418,9 @@ async def create_basket(
             response_text = response.text
             
             # Print response details for debugging
-            print(f"Response status: {response.status_code}")
-            print(f"Response headers: {response.headers}")
-            print(f"Response content: {response_text[:500]}..." if len(response_text) > 500 else response_text)
+            log.info(f"Response status: {response.status_code}")
+            log.info(f"Response headers: {response.headers}")
+            log.info(f"Response content: {response_text[:500]}..." if len(response_text) > 500 else response_text)
             
             # Force raise an exception for HTTP errors
             response.raise_for_status()
@@ -428,18 +429,18 @@ async def create_basket(
             return response.json()
             
     except httpx.HTTPStatusError as e:
-        print(f"HTTP error: {e}")
+        log.info(f"HTTP error: {e}")
         # Try to parse the error response if possible
         if hasattr(e, 'response') and e.response is not None:
             try:
                 error_data = e.response.json()
-                print(f"Error details: {error_data}")
+                log.info(f"Error details: {error_data}")
                 return {"error": str(e), "details": error_data}
             except Exception:
                 pass
         return {"error": str(e)}
     except Exception as e:
-        print(f"Error creating basket: {e}")
+        log.info(f"Error creating basket: {e}")
         return {"error": str(e)}
 
 
@@ -449,22 +450,22 @@ async def wolt_create_basket(venue_id: str, item_id: str, currency: str = None, 
     """Create a new basket for a venue and initial items.
     
     Args:
-        venue_id: ID of the venue (not the slug)
+        venue_id: ID of the venue (not the slug) corresponding to the item
         item_id: ID of the item to add
         currency: Optional currency code
         language: Language code for localization (default: 'en')
     """
 
     return await create_basket(venue_id, item_id, 1, "web", language)
-
+"""
 @mcp.tool()
 async def wolt_get_basket(basket_id: str, language: str = "en") -> dict:
-    """Retrieve a basket by basketId.
+    ""Retrieve a basket by basketId.
     
     Args:
         basket_id: ID of the basket to retrieve
         language: Language code for localization (default: 'en')
-    """
+    ""
     url = f"{WOLT_API_BASE}/order-xp/v1/baskets/{basket_id}"
     headers = get_auth_headers(language=language)
     try:
@@ -478,11 +479,11 @@ async def wolt_get_basket(basket_id: str, language: str = "en") -> dict:
 
 @mcp.tool()
 async def wolt_basket_count(language: str = "en") -> int:
-    """Get number of active baskets for current user.
+    ""Get number of active baskets for current user.
     
     Args:
         language: Language code for localization (default: 'en')
-    """
+    ""
     url = f"{WOLT_API_BASE}/order-xp/v1/baskets/count"
     headers = get_auth_headers(language=language)
     try:
@@ -493,7 +494,7 @@ async def wolt_basket_count(language: str = "en") -> int:
     except Exception as e:
         log.exception(f"Failed to get basket count: {e}")
         return {"error": str(e)}
-
+"""
 @mcp.tool()
 async def wolt_checkout(purchase_plan: dict, language: str = "en") -> dict:
     """Finalise checkout and place the order.

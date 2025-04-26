@@ -1,0 +1,13 @@
+2025-04-26 15:35:50,016 - mcp.server.lowlevel.server - DEBUG - Initializing server 'wolt'
+2025-04-26 15:35:50,016 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListToolsRequest
+2025-04-26 15:35:50,016 - mcp.server.lowlevel.server - DEBUG - Registering handler for CallToolRequest
+2025-04-26 15:35:50,016 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListResourcesRequest
+2025-04-26 15:35:50,016 - mcp.server.lowlevel.server - DEBUG - Registering handler for ReadResourceRequest
+2025-04-26 15:35:50,016 - mcp.server.lowlevel.server - DEBUG - Registering handler for PromptListRequest
+2025-04-26 15:35:50,017 - mcp.server.lowlevel.server - DEBUG - Registering handler for GetPromptRequest
+2025-04-26 15:35:50,017 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListResourceTemplatesRequest
+2025-04-26 15:35:50,039 - __main__ - INFO - Starting Wolt MCP server... Logging to console and C:\Code\MetaCortex_v1\wolt\logs\wolt_mcp_server_20250426_153550.log
+2025-04-26 15:35:50,039 - __main__ - DEBUG - Using AUTH_TOKEN: ******
+2025-04-26 15:35:50,039 - __main__ - DEBUG - Using SESSION_ID: 1af23bc3-fb71-4e6d-980d-0d9b7ed583e0
+2025-04-26 15:35:50,043 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-04-26 15:35:50,048 - __main__ - INFO - Server stopped

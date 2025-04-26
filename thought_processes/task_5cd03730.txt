@@ -1,0 +1,1972 @@
+[06:04:00] [APIAgent] INFO Initialized with model=openai/gpt-4o, endurance=5
+
+----------------------------- INITIALIZING AGENT -----------------------------
+
+[06:04:00] [APIAgent] INFO Starting client manager
+[06:04:04] [APIAgent] INFO Verifying server connections
+[06:04:04] [APIAgent] INFO Loading available tools
+[06:04:04] [APIAgent] INFO Loaded 59 tools
+[06:04:04] [APIAgent] INFO Loading system prompt
+[06:04:04] [APIAgent] DEBUG Available actions (59):
+[06:04:04] [APIAgent] DEBUG   - wolt.list_italian_restaurants: Fetches a list of Italian restaurants near the given latitude and longitude using the Wolt API.
+
+    Args:
+        lat: Latitude coordinate.
+        lon: Longitude coordinate.
+
+    Returns:
+        A string containing a formatted list of nearby Italian restaurants or an error message.
+    
+[06:04:04] [APIAgent] DEBUG   - wolt.wolt_venue_list: List venues that deliver to a location code. Optionally filter by latlng and openNow.
+[06:04:04] [APIAgent] DEBUG   - wolt.wolt_venue_profile: Get full venue profile (hero images, tagline, badges, etc).
+[06:04:04] [APIAgent] DEBUG   - wolt.wolt_venue_menu: Get full menu (categories + items) for a venue.
+[06:04:04] [APIAgent] DEBUG   - wolt.wolt_menu_items: Fetch one or more specific menu items by ID for a venue.
+[06:04:04] [APIAgent] DEBUG   - wolt.wolt_create_basket: Create a new basket for a venue and initial items.
+[06:04:04] [APIAgent] DEBUG   - wolt.wolt_get_basket: Retrieve a basket by basketId.
+[06:04:04] [APIAgent] DEBUG   - wolt.wolt_basket_count: Get number of active baskets for current user.
+[06:04:04] [APIAgent] DEBUG   - wolt.wolt_checkout: Finalise checkout and place the order.
+[06:04:04] [APIAgent] DEBUG   - wolt.wolt_past_orders: List the user’s past orders (paginated, newest first).
+[06:04:04] [APIAgent] DEBUG   - wolt.wolt_geocode_address: Resolve Google Place ID to street address.
+[06:04:04] [APIAgent] DEBUG   - wolt.wolt_order_tracking: Get live tracking data for an order.
+[06:04:04] [APIAgent] DEBUG   - wolt.wolt_bulk_delete_baskets: Delete multiple baskets in one call.
+    Args:
+        ids: List of basket IDs to delete.
+    Returns:
+        API response as a dict.
+    
+[06:04:04] [APIAgent] DEBUG   - filesystem.read_file: Read the complete contents of a file from the file system. Handles various text encodings and provides detailed error messages if the file cannot be read. Use this tool when you need to examine the contents of a single file. Only works within allowed directories.
+[06:04:04] [APIAgent] DEBUG   - filesystem.read_multiple_files: Read the contents of multiple files simultaneously. This is more efficient than reading files one by one when you need to analyze or compare multiple files. Each file's content is returned with its path as a reference. Failed reads for individual files won't stop the entire operation. Only works within allowed directories.
+[06:04:04] [APIAgent] DEBUG   - filesystem.write_file: Create a new file or completely overwrite an existing file with new content. Use with caution as it will overwrite existing files without warning. Handles text content with proper encoding. Only works within allowed directories.
+[06:04:04] [APIAgent] DEBUG   - filesystem.edit_file: Make line-based edits to a text file. Each edit replaces exact line sequences with new content. Returns a git-style diff showing the changes made. Only works within allowed directories.
+[06:04:04] [APIAgent] DEBUG   - filesystem.create_directory: Create a new directory or ensure a directory exists. Can create multiple nested directories in one operation. If the directory already exists, this operation will succeed silently. Perfect for setting up directory structures for projects or ensuring required paths exist. Only works within allowed directories.
+[06:04:04] [APIAgent] DEBUG   - filesystem.list_directory: Get a detailed listing of all files and directories in a specified path. Results clearly distinguish between files and directories with [FILE] and [DIR] prefixes. This tool is essential for understanding directory structure and finding specific files within a directory. Only works within allowed directories.
+[06:04:04] [APIAgent] DEBUG   - filesystem.directory_tree: Get a recursive tree view of files and directories as a JSON structure. Each entry includes 'name', 'type' (file/directory), and 'children' for directories. Files have no children array, while directories always have a children array (which may be empty). The output is formatted with 2-space indentation for readability. Only works within allowed directories.
+[06:04:04] [APIAgent] DEBUG   - filesystem.move_file: Move or rename files and directories. Can move files between directories and rename them in a single operation. If the destination exists, the operation will fail. Works across different directories and can be used for simple renaming within the same directory. Both source and destination must be within allowed directories.
+[06:04:04] [APIAgent] DEBUG   - filesystem.search_files: Recursively search for files and directories matching a pattern. Searches through all subdirectories from the starting path. The search is case-insensitive and matches partial names. Returns full paths to all matching items. Great for finding files when you don't know their exact location. Only searches within allowed directories.
+[06:04:04] [APIAgent] DEBUG   - filesystem.get_file_info: Retrieve detailed metadata about a file or directory. Returns comprehensive information including size, creation time, last modified time, permissions, and type. This tool is perfect for understanding file characteristics without reading the actual content. Only works within allowed directories.
+[06:04:04] [APIAgent] DEBUG   - filesystem.list_allowed_directories: Returns the list of directories that this server is allowed to access. Use this to understand which directories are available before trying to access files.
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_close: Close the page
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_wait: Wait for a specified time in seconds
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_resize: Resize the browser window
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_console_messages: Returns all console messages
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_handle_dialog: Handle a dialog
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_file_upload: Upload one or multiple files
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_install: Install the browser specified in the config. Call this if you get an error about the browser not being installed.
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_press_key: Press a key on the keyboard
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_navigate: Navigate to a URL
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_navigate_back: Go back to the previous page
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_navigate_forward: Go forward to the next page
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_network_requests: Returns all network requests since loading the page
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_pdf_save: Save page as PDF
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_snapshot: Capture accessibility snapshot of the current page, this is better than screenshot
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_click: Perform click on a web page
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_drag: Perform drag and drop between two elements
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_hover: Hover over element on page
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_type: Type text into editable element
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_select_option: Select an option in a dropdown
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_take_screenshot: Take a screenshot of the current page. You can't perform actions based on the screenshot, use browser_snapshot for actions.
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_tab_list: List browser tabs
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_tab_new: Open a new tab
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_tab_select: Select a tab by index
+[06:04:04] [APIAgent] DEBUG   - playwright.browser_tab_close: Close a tab
+[06:04:04] [APIAgent] DEBUG   - Google Calendar.google_calendar-update-event: Update an event from Google Calendar. [See the documentation](https://googleapis.dev/nodejs/googleapis/latest/calendar/classes/Resource$Events.html#update)
+[06:04:04] [APIAgent] DEBUG   - Google Calendar.google_calendar-quick-add-event: Create a quick event to the Google Calendar. [See the documentation](https://googleapis.dev/nodejs/googleapis/latest/calendar/classes/Resource$Events.html#quickAdd)
+[06:04:04] [APIAgent] DEBUG   - Google Calendar.google_calendar-query-free-busy-calendars: Retrieve free/busy calendar details from Google Calendar. [See the documentation](https://googleapis.dev/nodejs/googleapis/latest/calendar/classes/Resource$Freebusy.html#query)
+[06:04:04] [APIAgent] DEBUG   - Google Calendar.google_calendar-list-events: Retrieve a list of event from the Google Calendar. [See the documentation](https://developers.google.com/calendar/api/v3/reference/events/list)
+    
+
+
+
+IMPORTANT: The arguments have specific formats. Please follow the instructions below:
+- eventTypes: Return JSON in this format: string[]
+[06:04:04] [APIAgent] DEBUG   - Google Calendar.google_calendar-list-calendars: Retrieve a list of calendars from Google Calendar. [See the documentation](https://googleapis.dev/nodejs/googleapis/latest/calendar/classes/Resource$Calendarlist.html#list)
+[06:04:04] [APIAgent] DEBUG   - Google Calendar.google_calendar-get-event: Retrieve event details from Google Calendar. [See the documentation](https://googleapis.dev/nodejs/googleapis/latest/calendar/classes/Resource$Events.html#get)
+[06:04:04] [APIAgent] DEBUG   - Google Calendar.google_calendar-get-calendar: Retrieve calendar details of a Google Calendar. [See the documentation](https://googleapis.dev/nodejs/googleapis/latest/calendar/classes/Resource$Calendars.html#get)
+[06:04:04] [APIAgent] DEBUG   - Google Calendar.google_calendar-delete-event: Delete an event from a Google Calendar. [See the documentation](https://googleapis.dev/nodejs/googleapis/latest/calendar/classes/Resource$Events.html#delete)
+[06:04:04] [APIAgent] DEBUG   - Google Calendar.google_calendar-create-event: Create an event in a Google Calendar. [See the documentation](https://developers.google.com/calendar/api/v3/reference/events/insert)
+[06:04:04] [APIAgent] DEBUG   - Google Calendar.google_calendar-add-attendees-to-event: Add attendees to an existing event. [See the documentation](https://googleapis.dev/nodejs/googleapis/latest/calendar/classes/Resource$Events.html#update)
+[06:04:04] [APIAgent] DEBUG   - Google Calendar.CONFIGURE_COMPONENT: 
+    You call this tool if you need to get the available options for a property of a component.
+    The property description will tell you if you can use this tool and what the parameter values are.
+    
+[06:04:04] [APIAgent] INFO Loading prompt from C:\Code\MetaCortex_v1\prompts\react_agent.txt
+[06:04:04] [APIAgent] SUCCESS Prompt loaded and configured with agent persona
+[06:04:04] [APIAgent] INFO Creating LLM agent with model openai/gpt-4o
+[06:04:04] [APIAgent] SUCCESS Agent initialized successfully on attempt 1
+
+---------------------------------- NEW TASK ----------------------------------
+
+[06:04:04] [APIAgent] INFO Question: whats new on cnn.com?
+
+--------------------------------- TURN 1/25 ---------------------------------
+
+[06:04:04] [APIAgent] INFO Generating response...
+[06:04:06] [APIAgent] THOUGHT Step 1 (2.36s): I will navigate to the CNN website to check the latest news available on their homepage.
+[06:04:06] [APIAgent] ACTION Step 2 (2.36s): Tool: playwright|browser_navigate(url=https://www.cnn.com)
+[06:04:11] [APIAgent] OBSERVATION Step 2 (7.36s): Result: - Ran Playwright code:
+```js
+// Navigate to https://www.cnn.com
+await page.goto('https://www.cnn.com');
+```
+
+- Page URL: https://edition.cnn.com/
+- Page Title: Breaking News, Latest News and Videos | CNN
+- Page Snapshot
+```yaml
+- generic [ref=s1e2]:
+  - banner [ref=s1e3]:
+    - generic [ref=s1e4]:
+      - generic [ref=s1e6]:
+        - generic
+      - navigation [ref=s1e10]:
+        - generic [ref=s1e12]:
+          - generic [ref=s1e13]:
+            - generic [ref=s1e14]:
+              - button "Open Menu Icon" [ref=s1e15]:
+                - img [ref=s1e16]
+              - link "CNN logo" [ref=s1e19]:
+                - /url: https://edition.cnn.com
+                - img [ref=s1e21]
+              - navigation [ref=s1e24]:
+                - generic [ref=s1e25]:
+                  - link "US" [ref=s1e27]:
+                    - /url: https://edition.cnn.com/us
+                  - link "World" [ref=s1e29]:
+                    - /url: https://edition.cnn.com/world
+                  - link "Politics" [ref=s1e31]:
+                    - /url: https://edition.cnn.com/politics
+                  - link "Business" [ref=s1e33]:
+                    - /url: https://edition.cnn.com/business
+                  - link "Health" [ref=s1e35]:
+                    - /url: https://edition.cnn.com/health
+                  - link "Entertainment" [ref=s1e37]:
+                    - /url: https://edition.cnn.com/entertainment
+                  - link "Style" [ref=s1e39]:
+                    - /url: https://edition.cnn.com/style
+                  - generic [ref=s1e41]: More
+            - generic [ref=s1e43]:
+              - link "Watch" [ref=s1e44]:
+                - /url: https://edition.cnn.com/video
+              - link "Listen" [ref=s1e45]:
+                - /url: https://edition.cnn.com/audio
+              - link "Live TV" [ref=s1e46]:
+                - /url: https://edition.cnn.com/live-tv
+              - button "Search Icon" [ref=s1e47]
+              - navigation "User Account Nav" [ref=s1e49]:
+                - link "User Account Log In Button" [ref=s1e51]: Sign in
+          - separator [ref=s1e52]
+  - generic [ref=s1e53]:
+    - generic
+    - generic [ref=s1e58]:
+      - main [ref=s1e59]:
+        - generic [ref=s1e61]:
+          - generic [ref=s1e63]:
+            - generic [ref=s1e65]:
+              - generic [ref=s1e67]:
+                - generic [ref=s1e70]:
+                  - generic [ref=s1e72]:
+                    - link "Kashmir massacre |" [ref=s1e74]:
+                      - /url: /2025/04/24/india/pahalgam-india-pakistan-attack-explainer-intl-hnk/index.html
+                      - generic [ref=s1e75]:
+                        - generic [ref=s1e77]: Kashmir massacre
+                        - text: "|"
+                    - link "More Russian strikes on Ukraine |" [ref=s1e79]:
+                      - /url: /2025/04/25/europe/russia-strikes-ukraine-trump-vladimir-intl-hnk/index.html
+                      - generic [ref=s1e80]:
+                        - generic [ref=s1e82]: More Russian strikes on Ukraine
+                        - text: "|"
+                    - link "World’s tallest abandoned skyscraper |" [ref=s1e84]:
+                      - /url: /2025/04/24/style/china-goldin-finance-117-construction-resumes-hnk-intl/index.html
+                      - generic [ref=s1e85]:
+                        - generic [ref=s1e87]: World’s tallest abandoned skyscraper
+                        - text: "|"
+                    - link "Pope Francis burial |" [ref=s1e89]:
+                      - /url: /2025/04/25/europe/pope-francis-burial-santa-maria-maggiore-intl/index.html
+                      - generic [ref=s1e90]:
+                        - generic [ref=s1e92]: Pope Francis burial
+                        - text: "|"
+                    - link "Labubu collectibles |" [ref=s1e94]:
+                      - /url: /2025/04/25/style/labubu-plush-toy-buying-craze-hnk-intl/index.html
+                      - generic [ref=s1e95]:
+                        - generic [ref=s1e97]: Labubu collectibles
+                        - text: "|"
+                    - link "Vivienne Westwood" [ref=s1e99]:
+                      - /url: /2025/04/25/style/vivienne-westwood-bridal-fashion-show/index.html
+                      - generic [ref=s1e101]: Vivienne Westwood
+            - generic [ref=s1e106]:
+              - generic
+              - generic [ref=s1e109]:
+                - generic [ref=s1e111]:
+                  - generic [ref=s1e113]:
+                    - generic [ref=s1e114]:
+                      - link "FBI arrests judge for alleged obstruction in latest Trump admin clash with judiciary" [ref=s1e118]:
+                        - /url: /2025/04/25/politics/fbi-director-wisconsin-judge-arrested/index.html
+                        - heading "FBI arrests judge for alleged obstruction in
+                          latest Trump admin clash with judiciary" [level=2]
+                          [ref=s1e119]
+                      - generic [ref=s1e121]:
+                        - generic [ref=s1e122]:
+                          - generic [ref=s1e123]:
+                            - link "This 2016 photo shows Judge Hannah Dugan in Milwaukee, Wisconsin." [ref=s1e124]:
+                              - /url: /2025/04/25/politics/fbi-director-wisconsin-judge-arrested/index.html
+                              - generic [ref=s1e126]:
+                                - generic [ref=s1e128]:
+                                  - generic:
+                                    - img "This 2016 photo shows Judge Hannah
+                                      Dugan in Milwaukee, Wisconsin."
+                                      [ref=s1e134]
+                            - link "FBI Director Kash Patel said Judge Hannah Dugan ‘intentionally misdirected’ agents to help an undocumented immigrant avoid arrest" [ref=s1e135]:
+                              - /url: /2025/04/25/politics/fbi-director-wisconsin-judge-arrested/index.html
+                              - generic [ref=s1e137]: FBI Director Kash Patel said Judge Hannah Dugan
+                                  ‘intentionally misdirected’ agents to help an
+                                  undocumented immigrant avoid arrest
+                          - link "Who is Hannah Dugan, the Wisconsin judge arrested by the FBI?" [ref=s1e140]:
+                            - /url: /2025/04/25/politics/hannah-dugan-wisconsin-judge/index.html
+                            - generic [ref=s1e142]: Who is Hannah Dugan, the Wisconsin judge arrested by the
+                                FBI?
+                          - link "Prosecution of Wisconsin judge underscores Trump administration’s aggressive approach to immigration enforcement" [ref=s1e145]:
+                            - /url: /2025/04/25/politics/wisconsin-judge-trump-aggressive-immigration/index.html
+                            - generic [ref=s1e147]: Prosecution of Wisconsin judge underscores Trump
+                                administration’s aggressive approach to
+                                immigration enforcement
+                          - link "DOGE is building a master database for immigration enforcement using sensitive personal data, sources say" [ref=s1e150]:
+                            - /url: /2025/04/25/politics/doge-building-master-database-immigration/index.html
+                            - generic [ref=s1e152]: DOGE is building a master database for immigration
+                                enforcement using sensitive personal data,
+                                sources say
+                          - link "Trump backs down in legal fight over canceling international students’ status records for now" [ref=s1e155]:
+                            - /url: /2025/04/25/politics/international-students-status-records-fight/index.html
+                            - generic [ref=s1e157]: Trump backs down in legal fight over canceling
+                                international students’ status records for now
+                          - link "Mexican citizens react to US anti-immigration commercials 1:32" [ref=s1e160]:
+                            - /url: /2025/04/24/world/video/mexican-citizens-react-to-immigration-commercials-digvid
+                            - generic [ref=s1e162]:
+                              - text: Mexican citizens react to US anti-immigration commercials
+                              - generic [ref=s1e164]: 1:32
+                    - generic [ref=s1e166]:
+                      - generic [ref=s1e170]:
+                        - generic [ref=s1e171]:
+                          - generic [ref=s1e172]:
+                            - link "20250417-brother_detained split.jpg" [ref=s1e173]:
+                              - /url: /2025/04/17/world/video/american-detained-in-venezuela-pkg-digvid
+                              - generic [ref=s1e175]:
+                                - generic [ref=s1e177]:
+                                  - generic:
+                                    - img "20250417-brother_detained split.jpg"
+                                      [ref=s1e183]
+                            - link "Sister describes moment she found out her brother had been taken by Venezuela 3:24" [ref=s1e184]:
+                              - /url: /2025/04/17/world/video/american-detained-in-venezuela-pkg-digvid
+                              - generic [ref=s1e186]:
+                                - text: Sister describes moment she found out her brother had been taken by
+                                    Venezuela
+                                - generic [ref=s1e188]: 3:24
+                          - generic [ref=s1e190]:
+                            - link "vietnam.jpg" [ref=s1e191]:
+                              - /url: /2025/04/25/politics/video/vietnamese-americans-trump-first-100-days-lee-digvid
+                              - generic [ref=s1e193]:
+                                - generic [ref=s1e195]:
+                                  - generic:
+                                    - img "vietnam.jpg" [ref=s1e201]
+                            - link "Vietnamese-American community reacts to Trump’s first 100 days 3:44" [ref=s1e202]:
+                              - /url: /2025/04/25/politics/video/vietnamese-americans-trump-first-100-days-lee-digvid
+                              - generic [ref=s1e204]:
+                                - text: Vietnamese-American community reacts to Trump’s first 100 days
+                                - generic [ref=s1e206]: 3:44
+                          - generic [ref=s1e208]:
+                            - link "20250425-cnn_full16x9.jpg" [ref=s1e209]:
+                              - /url: /2025/04/25/politics/video/hannah-dugan-milwaukee-judge-arrested-coates-lead-digvid
+                              - generic [ref=s1e211]:
+                                - generic [ref=s1e213]:
+                                  - generic:
+                                    - img "20250425-cnn_full16x9.jpg"
+                                      [ref=s1e219]
+                            - link "Ex-prosecutor says arrested judge’s fate could come down to this 1:21" [ref=s1e220]:
+                              - /url: /2025/04/25/politics/video/hannah-dugan-milwaukee-judge-arrested-coates-lead-digvid
+                              - generic [ref=s1e222]:
+                                - text: Ex-prosecutor says arrested judge’s fate could come down to this
+                                - generic [ref=s1e224]: 1:21
+                - generic [ref=s1e227]:
+                  - generic [ref=s1e229]:
+                    - generic [ref=s1e230]:
+                      - generic [ref=s1e234]:
+                        - generic [ref=s1e236]:
+                          - link "Virginia Giuffre holds a photo of herself as a teen. Breaking News" [ref=s1e237]:
+                            - /url: /2025/04/25/australia/prince-andrew-accuser-virginia-giuffre-dies-intl-hnk/index.html
+                            - generic [ref=s1e239]:
+                              - generic [ref=s1e240]:
+                                - generic:
+                                  - img "Virginia Giuffre holds a photo of
+                                    herself as a teen." [ref=s1e247]
+                                - generic [ref=s1e249]: Breaking News
+                          - link "Virginia Giuffre, prominent Jeffrey Epstein sex abuse survivor and accuser of Prince Andrew, has died" [ref=s1e252]:
+                            - /url: /2025/04/25/australia/prince-andrew-accuser-virginia-giuffre-dies-intl-hnk/index.html
+                            - generic [ref=s1e254]: Virginia Giuffre, prominent Jeffrey Epstein sex abuse
+                                survivor and accuser of Prince Andrew, has died
+                    - generic [ref=s1e256]:
+                      - generic [ref=s1e260]:
+                        - generic [ref=s1e262]:
+                          - link "deekfakeporn_sk_lighter.jpg" [ref=s1e263]:
+                            - /url: /2025/04/25/asia/south-korea-deepfake-crimes-intl-hnk-dst/index.html
+                            - generic [ref=s1e265]:
+                              - generic [ref=s1e267]:
+                                - generic:
+                                  - img "deekfakeporn_sk_lighter.jpg"
+                                    [ref=s1e273]
+                          - link "Deepfake porn is destroying real lives in South Korea" [ref=s1e274]:
+                            - /url: /2025/04/25/asia/south-korea-deepfake-crimes-intl-hnk-dst/index.html
+                            - generic [ref=s1e276]: Deepfake porn is destroying real lives in South Korea
+                    - generic [ref=s1e278]:
+                      - generic [ref=s1e282]:
+                        - generic [ref=s1e283]:
+                          - generic [ref=s1e284]:
+                            - link "In this pool photograph distributed by Russian state agency Sputnik, Russia's President Vladimir Putin (R) greets US Special Envoy Steve Witkoff (L) prior to their talks in Moscow on April 25, 2025. (Photo by KRISTINA KORMILITSYNA / POOL / AFP) (Photo by KRISTINA KORMILITSYNA/POOL/AFP via Getty Images)" [ref=s1e285]:
+                              - /url: /2025/04/25/europe/russian-military-officer-killed-intl/index.html
+                              - generic [ref=s1e287]:
+                                - generic [ref=s1e289]:
+                                  - generic:
+                                    - img "In this pool photograph distributed
+                                      by Russian state agency Sputnik, Russia's
+                                      President Vladimir Putin (R) greets US
+                                      Special Envoy Steve Witkoff (L) prior to
+                                      their talks in Moscow on April 25, 2025.
+                                      (Photo by KRISTINA KORMILITSYNA / POOL /
+                                      AFP) (Photo by KRISTINA
+                                      KORMILITSYNA/POOL/AFP via Getty Images)"
+                                      [ref=s1e295]
+                            - link "Trump says Russia and Ukraine ‘very close to deal’ after Witkoff meets Putin" [ref=s1e296]:
+                              - /url: /2025/04/25/europe/russian-military-officer-killed-intl/index.html
+                              - generic [ref=s1e298]: Trump says Russia and Ukraine ‘very close to deal’ after
+                                  Witkoff meets Putin
+                          - link "US-Iran talks to enter ‘challenging’ phase as Rubio sets conditions" [ref=s1e301]:
+                            - /url: /2025/04/25/middleeast/why-iran-us-nuclear-talks-may-be-tougher-this-saturday-intl/index.html
+                            - generic [ref=s1e303]: US-Iran talks to enter ‘challenging’ phase as Rubio sets
+                                conditions
+                - generic [ref=s1e306]:
+                  - generic [ref=s1e308]:
+                    - generic [ref=s1e309]:
+                      - generic [ref=s1e313]:
+                        - generic [ref=s1e315]:
+                          - generic [ref=s1e317]:
+                            - generic [ref=s1e319]:
+                              - generic [ref=s1e320]:
+                                - generic [ref=s1e321]:
+                                  - generic [ref=s1e323]:
+                                    - generic [ref=s1e324]:
+                                      - generic [ref=s1e325]: Catch up on today's global news
+                                      - generic [ref=s1e329]
+                                      - generic [ref=s1e330]:
+                                        - generic [ref=s1e332]:
+                                          - generic [ref=s1e333]:
+                                            - button "Mute" [ref=s1e334]:
+                                              - img "Mute" [ref=s1e335]
+                                            - slider:
+                                              - generic "Volume bar" [ref=s1e339]
+                                          - button "Captions Unavailable" [disabled] [ref=s1e341]:
+                                            - img "Captions Unavailable"
+                                              [ref=s1e342]
+                                          - button "Options" [ref=s1e344]:
+                                            - img "Options" [ref=s1e345]
+                                          - button "Fullscreen" [ref=s1e347]:
+                                            - img "Fullscreen" [ref=s1e348]
+                                        - slider "Progress bar" [ref=s1e350]:
+                                          - generic [ref=s1e353]
+                                  - region "video player" [ref=s1e354]:
+                                    - generic [ref=s1e356]
+                                    - generic [ref=s1e357]:
+                                      - generic [ref=s1e362]
+                                      - generic [ref=s1e366]
+                                      - generic [ref=s1e368]:
+                                        - generic [ref=s1e370]
+                                - generic [ref=s1e375]:
+                                  - img [ref=s1e376]:
+                                    - generic [ref=s1e377]
+                          - link "Catch up on today’s global news" [ref=s1e380]:
+                            - /url: /videos/fast/cnni-fast
+                            - generic [ref=s1e382]: Catch up on today’s global news
+                    - generic [ref=s1e384]:
+                      - generic [ref=s1e388]:
+                        - generic [ref=s1e389]:
+                          - generic [ref=s1e390]:
+                            - 'link "July 1994: Kerri Cunningham and Dirk Stevens in New York (Circle Line Boat) Stevens family Visits New York" [ref=s1e391]':
+                              - /url: /travel/teenage-vacation-romance-reunited-years-later-chance-encounters/index.html
+                              - generic [ref=s1e393]:
+                                - generic [ref=s1e395]:
+                                  - generic:
+                                    - 'img "July 1994: Kerri Cunningham and Dirk
+                                      Stevens in New York (Circle Line Boat)
+                                      Stevens family Visits New York"
+                                      [ref=s1e401]'
+                            - link "They were teens in love on vacation in the 1990s. Here’s what happened when they reunited as adults" [ref=s1e402]:
+                              - /url: /travel/teenage-vacation-romance-reunited-years-later-chance-encounters/index.html
+                              - generic [ref=s1e404]: They were teens in love on vacation in the 1990s. Here’s
+                                  what happened when they reunited as adults
+                          - generic [ref=s1e406]:
+                            - 'link "Mandatory Credit: Photo by Costfoto/NurPhoto/Shutterstock (14680209k) The 597-meter high Goldin Finance 117 Tower, known as the world''s first unfinished building, is pictured in Tianjin, China, on August 28, 2024. The construction of Goldin Finance 117 Building in Xiqing District, Tianjin, begins in September 2008, and on September 8, 2015, Goldin Finance 117 completes the main structure. Goldin Finance 117 becomes an unfinished building, stalled by Goldin''s plunging market value and poor sales. World''s First Unfinished Building in Tianjin, China - 30 Aug 2024" [ref=s1e407]':
+                              - /url: /2025/04/24/style/china-goldin-finance-117-construction-resumes-hnk-intl/index.html
+                              - generic [ref=s1e409]:
+                                - generic [ref=s1e411]:
+                                  - generic:
+                                    - 'img "Mandatory Credit: Photo by
+                                      Costfoto/NurPhoto/Shutterstock (14680209k)
+                                      The 597-meter high Goldin Finance 117
+                                      Tower, known as the world''s first
+                                      unfinished building, is pictured in
+                                      Tianjin, China, on August 28, 2024. The
+                                      construction of Goldin Finance 117
+                                      Building in Xiqing District, Tianjin,
+                                      begins in September 2008, and on September
+                                      8, 2015, Goldin Finance 117 completes the
+                                      main structure. Goldin Finance 117 becomes
+                                      an unfinished building, stalled by
+                                      Goldin''s plunging market value and poor
+                                      sales. World''s First Unfinished Building
+                                      in Tianjin, China - 30 Aug 2024"
+                                      [ref=s1e417]'
+                            - link "Construction of world’s tallest abandoned skyscraper to resume after a decade" [ref=s1e418]:
+                              - /url: /2025/04/24/style/china-goldin-finance-117-construction-resumes-hnk-intl/index.html
+                              - generic [ref=s1e420]: Construction of world’s tallest abandoned skyscraper to
+                                  resume after a decade
+                          - generic [ref=s1e422]:
+                            - 'link "PARIS, FRANCE - MARCH 08: A guest wears brown coat, white blouse, orange Hermes bag with a bag charm brown Labubu monster, grey pants outside the Hermes fashion show during the Womenswear Fall/Winter 2025/2026 as part of Paris Fashion Week on March 08, 2025 in Paris, France. (Photo by Raimonda Kulikauskiene/Getty Images)" [ref=s1e423]':
+                              - /url: /2025/04/25/style/labubu-plush-toy-buying-craze-hnk-intl/index.html
+                              - generic [ref=s1e425]:
+                                - generic [ref=s1e427]:
+                                  - generic:
+                                    - 'img "PARIS, FRANCE - MARCH 08: A guest
+                                      wears brown coat, white blouse, orange
+                                      Hermes bag with a bag charm brown Labubu
+                                      monster, grey pants outside the Hermes
+                                      fashion show during the Womenswear
+                                      Fall/Winter 2025/2026 as part of Paris
+                                      Fashion Week on March 08, 2025 in Paris,
+                                      France. (Photo by Raimonda
+                                      Kulikauskiene/Getty Images)" [ref=s1e433]'
+                            - link "Why a toothy little monster has sparked a worldwide buying frenzy" [ref=s1e434]:
+                              - /url: /2025/04/25/style/labubu-plush-toy-buying-craze-hnk-intl/index.html
+                              - generic [ref=s1e436]: Why a toothy little monster has sparked a worldwide buying
+                                  frenzy
+                          - generic [ref=s1e438]:
+                            - link [ref=s1e439]:
+                              - /url: /2025/04/24/business/video/nova-innovation-underwater-turbine-spc-digvid
+                              - generic [ref=s1e441]:
+                                - generic [ref=s1e443]
+                            - link "Underwater windmills could revolutionize our energy systems 1:55" [ref=s1e445]:
+                              - /url: /2025/04/24/business/video/nova-innovation-underwater-turbine-spc-digvid
+                              - generic [ref=s1e447]:
+                                - text: Underwater windmills could revolutionize our energy systems
+                                - generic [ref=s1e449]: 1:55
+                          - generic [ref=s1e451]:
+                            - link "_ROB8443-Edit.jpg" [ref=s1e452]:
+                              - /url: /2025/04/21/style/benidorm-spain-holiday-photography/index.html
+                              - generic [ref=s1e454]:
+                                - generic [ref=s1e456]:
+                                  - generic:
+                                    - img "_ROB8443-Edit.jpg" [ref=s1e462]
+                            - link "How a Spanish fishing town became the ‘New York of the Mediterranean’" [ref=s1e463]:
+                              - /url: /2025/04/21/style/benidorm-spain-holiday-photography/index.html
+                              - generic [ref=s1e465]: How a Spanish fishing town became the ‘New York of the
+                                  Mediterranean’
+                          - generic [ref=s1e467]:
+                            - 'link "INDIANAPOLIS, INDIANA - FEBRUARY 27: Derrick Harmon #DL15 of Oregon participates in a drill at Lucas Oil Stadium on February 27, 2025 in Indianapolis, Indiana. (Photo by Brooke Sutton/Getty Images)" [ref=s1e468]':
+                              - /url: /2025/04/25/sport/pittsburgh-steelers-draft-pick-derrick-harmon-mother-death-spt/index.html
+                              - generic [ref=s1e470]:
+                                - generic [ref=s1e472]:
+                                  - generic:
+                                    - 'img "INDIANAPOLIS, INDIANA - FEBRUARY 27:
+                                      Derrick Harmon #DL15 of Oregon
+                                      participates in a drill at Lucas Oil
+                                      Stadium on February 27, 2025 in
+                                      Indianapolis, Indiana. (Photo by Brooke
+                                      Sutton/Getty Images)" [ref=s1e478]'
+                            - link "NFL first-round draft pick loses mother hours after being selected" [ref=s1e479]:
+                              - /url: /2025/04/25/sport/pittsburgh-steelers-draft-pick-derrick-harmon-mother-death-spt/index.html
+                              - generic [ref=s1e481]: NFL first-round draft pick loses mother hours after being
+                                  selected
+              - generic [ref=s1e484]
+            - generic [ref=s1e487]:
+              - generic [ref=s1e489]:
+                - generic [ref=s1e491]:
+                  - generic [ref=s1e494]:
+                    - heading "More top stories" [level=2] [ref=s1e498]
+                    - generic [ref=s1e500]:
+                      - generic [ref=s1e501]:
+                        - generic [ref=s1e502]:
+                          - link "President Donald Trump holds up a chart while speaking during a “Make America Wealthy Again” trade announcement on April 2." [ref=s1e503]:
+                            - /url: /2025/04/25/economy/trump-time-interview-tariffs/index.html
+                            - generic [ref=s1e505]:
+                              - generic [ref=s1e507]:
+                                - generic:
+                                  - img "President Donald Trump holds up a chart
+                                    while speaking during a “Make America
+                                    Wealthy Again” trade announcement on April
+                                    2." [ref=s1e513]
+                          - link "Trump outlines what ‘total victory’ looks like in his trade war. It’ll cost you" [ref=s1e514]:
+                            - /url: /2025/04/25/economy/trump-time-interview-tariffs/index.html
+                            - generic [ref=s1e516]: Trump outlines what ‘total victory’ looks like in his
+                                trade war. It’ll cost you
+                        - link "Mother and son who helped expose ‘extermination camp’ killed in Mexico" [ref=s1e519]:
+                          - /url: /2025/04/25/americas/mexican-activists-killed-jalisco-intl-latam/index.html
+                          - generic [ref=s1e521]: Mother and son who helped expose ‘extermination camp’
+                              killed in Mexico
+                        - link "Cardinals seal Pope Francis’ coffin, formally ending his lying in state at the Vatican" [ref=s1e524]:
+                          - /url: /2025/04/25/europe/pope-francis-coffin-close-vatican-intl/index.html
+                          - generic [ref=s1e526]: Cardinals seal Pope Francis’ coffin, formally ending his
+                              lying in state at the Vatican
+                        - link "Why Francis isn’t being buried in Vatican" [ref=s1e529]:
+                          - /url: /2025/04/25/europe/pope-francis-burial-santa-maria-maggiore-intl/index.html
+                          - generic [ref=s1e531]: Why Francis isn’t being buried in Vatican
+                        - link "Former Rep. George Santos sentenced to 87 months for federal fraud charges" [ref=s1e534]:
+                          - /url: /2025/04/25/politics/george-santos-sentencing-fraud/index.html
+                          - generic [ref=s1e536]: Former Rep. George Santos sentenced to 87 months for
+                              federal fraud charges
+                - generic [ref=s1e539]:
+                  - generic [ref=s1e542]:
+                    - generic [ref=s1e546]:
+                      - generic [ref=s1e547]:
+                        - generic [ref=s1e548]:
+                          - 'link "BARCELONA, SPAIN - APRIL 24: Models walk the runway at the Vivienne Westwood fashion show during Barcelona Bridal Fashion Week 2025 at the Universitat de Barcelona on April 24, 2025 in Barcelona, Spain. (Photo by Xavi Torrent/Getty Images) Xavi Torrent/Getty Images" [ref=s1e549]':
+                            - /url: /2025/04/25/style/vivienne-westwood-bridal-fashion-show/index.html
+                            - generic [ref=s1e551]:
+                              - generic [ref=s1e552]:
+                                - generic:
+                                  - 'img "BARCELONA, SPAIN - APRIL 24: Models
+                                    walk the runway at the Vivienne Westwood
+                                    fashion show during Barcelona Bridal Fashion
+                                    Week 2025 at the Universitat de Barcelona on
+                                    April 24, 2025 in Barcelona, Spain. (Photo
+                                    by Xavi Torrent/Getty Images)" [ref=s1e559]'
+                                - generic [ref=s1e561]: Xavi Torrent/Getty Images
+                          - link "How Vivienne Westwood changed the way brides dress forever" [ref=s1e562]:
+                            - /url: /2025/04/25/style/vivienne-westwood-bridal-fashion-show/index.html
+                            - generic [ref=s1e564]: How Vivienne Westwood changed the way brides dress forever
+                        - generic [ref=s1e566]:
+                          - link "Luigi Mangione, the suspect in the killing of UnitedHealth Group chief executive Brian Thompson, appears in Manhattan Supreme Court on New York state murder and terrorism charges in New York City, U.S., February 21, 2025. Curtis Means/Pool via REUTERS TPX IMAGES OF THE DAY" [ref=s1e567]:
+                            - /url: /2025/04/25/us/luigi-mangione-federal-charges/index.html
+                            - generic [ref=s1e569]:
+                              - generic [ref=s1e571]:
+                                - generic:
+                                  - img "Luigi Mangione, the suspect in the
+                                    killing of UnitedHealth Group chief
+                                    executive Brian Thompson, appears in
+                                    Manhattan Supreme Court on New York state
+                                    murder and terrorism charges in New York
+                                    City, U.S., February 21, 2025. Curtis
+                                    Means/Pool via REUTERS TPX IMAGES OF THE
+                                    DAY" [ref=s1e577]
+                          - link "Luigi Mangione pleads not guilty to federal charges in killing of UnitedHealthcare CEO" [ref=s1e578]:
+                            - /url: /2025/04/25/us/luigi-mangione-federal-charges/index.html
+                            - generic [ref=s1e580]: Luigi Mangione pleads not guilty to federal charges in
+                                killing of UnitedHealthcare CEO
+                - generic [ref=s1e583]:
+                  - generic [ref=s1e585]
+                  - generic [ref=s1e588]:
+                    - generic [ref=s1e592]:
+                      - generic [ref=s1e593]:
+                        - generic [ref=s1e594]:
+                          - 'link "GLENDALE, ARIZONA - DECEMBER 31: Boise State Broncos defensive end Ahmed Hassanein (91) looks on in action during the 2024 Vrbo Fiesta Bowl between the Penn State Nittany Lions and Boise State Broncos at State Farm Stadium on December 31, 2024 in Glendale, Arizona. (Photo by Robin Alam/ISI Photos/Getty Images)" [ref=s1e595]':
+                            - /url: /2025/04/25/sport/ahmed-hassanein-nfl-draft-egypt-spt/index.html
+                            - generic [ref=s1e597]:
+                              - generic [ref=s1e599]:
+                                - generic:
+                                  - 'img "GLENDALE, ARIZONA - DECEMBER 31: Boise
+                                    State Broncos defensive end Ahmed Hassanein
+                                    (91) looks on in action during the 2024 Vrbo
+                                    Fiesta Bowl between the Penn State Nittany
+                                    Lions and Boise State Broncos at State Farm
+                                    Stadium on December 31, 2024 in Glendale,
+                                    Arizona. (Photo by Robin Alam/ISI
+                                    Photos/Getty Images)" [ref=s1e605]'
+                          - link "This ‘unrefined diamond’ could be his country’s first player selected in NFL draft" [ref=s1e606]:
+                            - /url: /2025/04/25/sport/ahmed-hassanein-nfl-draft-egypt-spt/index.html
+                            - generic [ref=s1e608]: This ‘unrefined diamond’ could be his country’s first
+                                player selected in NFL draft
+                        - generic [ref=s1e610]:
+                          - link "111987_yorktown wreck WIDE.00_00_13_27.Still001.png" [ref=s1e611]:
+                            - /url: /2025/04/24/us/video/car-inside-sunken-yorktown-digvid
+                            - generic [ref=s1e613]:
+                              - generic [ref=s1e615]:
+                                - generic:
+                                  - img "111987_yorktown wreck
+                                    WIDE.00_00_13_27.Still001.png" [ref=s1e621]
+                          - link "Scientists discover car inside a sunken WWII warship 0:43" [ref=s1e622]:
+                            - /url: /2025/04/24/us/video/car-inside-sunken-yorktown-digvid
+                            - generic [ref=s1e624]:
+                              - text: Scientists discover car inside a sunken WWII warship
+                              - generic [ref=s1e626]: 0:43
+              - generic [ref=s1e629]
+            - generic [ref=s1e632]:
+              - generic [ref=s1e634]:
+                - generic [ref=s1e636]:
+                  - generic [ref=s1e639]:
+                    - generic [ref=s1e643]:
+                      - generic [ref=s1e644]:
+                        - generic [ref=s1e645]:
+                          - link "Sean \"Diddy\" Combs attends Day 1 of 2023 Invest Fest at Georgia World Congress Center on August 26, 2023 in Atlanta, Georgia." [ref=s1e646]:
+                            - /url: /2025/04/25/entertainment/sean-diddy-combs-footage-physically-assaulting/index.html
+                            - generic [ref=s1e648]:
+                              - generic [ref=s1e650]:
+                                - generic:
+                                  - img "Sean \"Diddy\" Combs attends Day 1 of
+                                    2023 Invest Fest at Georgia World Congress
+                                    Center on August 26, 2023 in Atlanta,
+                                    Georgia." [ref=s1e656]
+                          - link "Jury will be shown footage of Sean ‘Diddy’ Combs physically assaulting Cassie Ventura, judge rules" [ref=s1e657]:
+                            - /url: /2025/04/25/entertainment/sean-diddy-combs-footage-physically-assaulting/index.html
+                            - generic [ref=s1e659]: Jury will be shown footage of Sean ‘Diddy’ Combs
+                                physically assaulting Cassie Ventura, judge
+                                rules
+                        - generic [ref=s1e661]:
+                          - link "Pope Francis' card" [ref=s1e662]:
+                            - /url: /2025/04/25/americas/pope-francis-san-lorenzo-club-member-88235-latam/index.html
+                            - generic [ref=s1e664]:
+                              - generic [ref=s1e666]:
+                                - generic:
+                                  - img "Pope Francis' card" [ref=s1e672]
+                          - link "Pope Francis’ old soccer club card has a mysterious symmetry to his death" [ref=s1e673]:
+                            - /url: /2025/04/25/americas/pope-francis-san-lorenzo-club-member-88235-latam/index.html
+                            - generic [ref=s1e675]: Pope Francis’ old soccer club card has a mysterious
+                                symmetry to his death
+                        - generic [ref=s1e677]:
+                          - link "People cross the Harvard Yard at Harvard University on April 17, 2025 in Cambridge, Massachusetts. The Trump administration announced that it would block Harvard University from receiving $2.2 billion in federal grants and $60 million in contracts after the school refused demands to adopt new policies relating to student and faculty conduct, admissions, anti-semitism on campus and DEI." [ref=s1e678]:
+                            - /url: /2025/04/25/us/harvard-lawsuit-trump-administration/index.html
+                            - generic [ref=s1e680]:
+                              - generic [ref=s1e682]:
+                                - generic:
+                                  - img "People cross the Harvard Yard at
+                                    Harvard University on April 17, 2025 in
+                                    Cambridge, Massachusetts. The Trump
+                                    administration announced that it would block
+                                    Harvard University from receiving $2.2
+                                    billion in federal grants and $60 million in
+                                    contracts after the school refused demands
+                                    to adopt new policies relating to student
+                                    and faculty conduct, admissions,
+                                    anti-semitism on campus and DEI."
+                                    [ref=s1e688]
+                          - link "A blandly titled law from 1946 may play a key role in Harvard’s lawsuit against the Trump administration" [ref=s1e689]:
+                            - /url: /2025/04/25/us/harvard-lawsuit-trump-administration/index.html
+                            - generic [ref=s1e691]: A blandly titled law from 1946 may play a key role in
+                                Harvard’s lawsuit against the Trump
+                                administration
+                        - generic [ref=s1e693]:
+                          - link "MHP FL Thumb 4.jpg" [ref=s1e694]:
+                            - /url: /2025/04/25/travel/video/florida-keys-scuba-diving-boris-sanchez-digvid
+                            - generic [ref=s1e696]:
+                              - generic [ref=s1e698]:
+                                - generic:
+                                  - img "MHP FL Thumb 4.jpg" [ref=s1e704]
+                          - link "CNN anchor explores underwater decades-old ‘haunted mansion’ 2:43" [ref=s1e705]:
+                            - /url: /2025/04/25/travel/video/florida-keys-scuba-diving-boris-sanchez-digvid
+                            - generic [ref=s1e707]:
+                              - text: CNN anchor explores underwater decades-old ‘haunted mansion’
+                              - generic [ref=s1e709]: 2:43
+                - generic [ref=s1e712]:
+                  - generic [ref=s1e715]:
+                    - generic [ref=s1e719]:
+                      - generic [ref=s1e720]:
+                        - generic [ref=s1e721]:
+                          - link "The jersey worn by Kobe Bryant during his rookie Los Angeles Lakers season in 1996-97 sold for a record price at auction. Scott Cunningham/NBAE/Getty Images" [ref=s1e722]:
+                            - /url: /2025/04/25/sport/kobe-bryant-debut-jersey-auction-sale-nba-spt-intl/index.html
+                            - generic [ref=s1e724]:
+                              - generic [ref=s1e725]:
+                                - generic:
+                                  - img "The jersey worn by Kobe Bryant during
+                                    his rookie Los Angeles Lakers season in
+                                    1996-97 sold for a record price at auction."
+                                    [ref=s1e732]
+                                - generic [ref=s1e734]: Scott Cunningham/NBAE/Getty Images
+                          - link "Kobe Bryant’s debut jersey sells for $7 million at auction" [ref=s1e735]:
+                            - /url: /2025/04/25/sport/kobe-bryant-debut-jersey-auction-sale-nba-spt-intl/index.html
+                            - generic [ref=s1e737]: Kobe Bryant’s debut jersey sells for $7 million at auction
+                        - generic [ref=s1e739]:
+                          - link "20250424-news_quiz SPLIT 0424.jpg" [ref=s1e740]:
+                            - /url: https://www.cnn.com/interactive/2025/04/us/cnn-5-things-news-quiz-april-25-sec/
+                            - generic [ref=s1e742]:
+                              - generic [ref=s1e744]:
+                                - generic:
+                                  - img "20250424-news_quiz SPLIT 0424.jpg"
+                                    [ref=s1e750]
+                          - 'link "Quiz: How well do you remember the news this week?" [ref=s1e751]':
+                            - /url: https://www.cnn.com/interactive/2025/04/us/cnn-5-things-news-quiz-april-25-sec/
+                            - generic [ref=s1e753]:
+                              - generic [ref=s1e754]:
+                                - text: Quiz
+                                - text: ":"
+                              - text: How well do you remember the news this week?
+                        - generic [ref=s1e757]:
+                          - link "GKPNA4 Staircase inside the Magic Circle, London, United Kingdom. Image shot 08/2015. Exact date unknown." [ref=s1e758]:
+                            - /url: /2025/04/25/uk/sophie-lloyd-magic-circle-scli-intl/index.html
+                            - generic [ref=s1e760]:
+                              - generic [ref=s1e762]:
+                                - generic:
+                                  - img "GKPNA4 Staircase inside the Magic
+                                    Circle, London, United Kingdom. Image shot
+                                    08/2015. Exact date unknown." [ref=s1e768]
+                          - link "Female magician who was kicked out of a men-only society is finally admitted, 34 years later" [ref=s1e769]:
+                            - /url: /2025/04/25/uk/sophie-lloyd-magic-circle-scli-intl/index.html
+                            - generic [ref=s1e771]: Female magician who was kicked out of a men-only society
+                                is finally admitted, 34 years later
+                - generic [ref=s1e774]:
+                  - generic [ref=s1e777]:
+                    - generic [ref=s1e781]:
+                      - generic [ref=s1e782]:
+                        - generic [ref=s1e783]:
+                          - link "Actress Gwyneth Paltrow attends the 11th Breakthrough Prize ceremony at Barker Hangar in Santa Monica, California, on April 5, 2025." [ref=s1e784]:
+                            - /url: /2025/04/25/health/gwyneth-paltrow-quits-paleo-diet-intl-scli-wellness/index.html
+                            - generic [ref=s1e786]:
+                              - generic [ref=s1e788]:
+                                - generic:
+                                  - img "Actress Gwyneth Paltrow attends the
+                                    11th Breakthrough Prize ceremony at Barker
+                                    Hangar in Santa Monica, California, on April
+                                    5, 2025." [ref=s1e794]
+                          - link "Gwyneth Paltrow has started eating carbs and cheese again" [ref=s1e795]:
+                            - /url: /2025/04/25/health/gwyneth-paltrow-quits-paleo-diet-intl-scli-wellness/index.html
+                            - generic [ref=s1e797]: Gwyneth Paltrow has started eating carbs and cheese again
+                        - generic [ref=s1e799]:
+                          - link "250424_AudieComedians_Vertical_1.00_00_02_12.Still002.jpg" [ref=s1e800]:
+                            - /url: /2025/04/25/politics/video/cornish-bell-joe-rogan-comedy-vrtc
+                            - generic [ref=s1e802]:
+                              - generic [ref=s1e804]:
+                                - generic:
+                                  - img
+                                    "250424_AudieComedians_Vertical_1.00_00_02_12.Still002.jpg"
+                                    [ref=s1e810]
+                          - 'link "Audie Cornish: is there a ‘left’ Joe Rogan? 1:53" [ref=s1e811]':
+                            - /url: /2025/04/25/politics/video/cornish-bell-joe-rogan-comedy-vrtc
+                            - generic [ref=s1e813]:
+                              - text: "Audie Cornish: is there a ‘left’ Joe Rogan?"
+                              - generic [ref=s1e815]: 1:53
+                        - generic [ref=s1e817]:
+                          - link "The downtown skyline of Los Angeles is seen on January 22, 2024." [ref=s1e818]:
+                            - /url: /2025/04/25/business/california-japan-economy-tariffs-intl-hnk/index.html
+                            - generic [ref=s1e820]:
+                              - generic [ref=s1e822]:
+                                - generic:
+                                  - img "The downtown skyline of Los Angeles is
+                                    seen on January 22, 2024." [ref=s1e828]
+                          - link "California overtakes Japan as the world’s fourth-largest economy" [ref=s1e829]:
+                            - /url: /2025/04/25/business/california-japan-economy-tariffs-intl-hnk/index.html
+                            - generic [ref=s1e831]: California overtakes Japan as the world’s fourth-largest
+                                economy
+                        - generic [ref=s1e833]:
+                          - 'link "Telecommuting: unrecognizable man sitting at the desk of his home office and doing work on his laptop PC" [ref=s1e834]':
+                            - /url: /2025/04/25/health/hip-exercises-knee-pain-relief-wellness/index.html
+                            - generic [ref=s1e836]:
+                              - generic [ref=s1e838]:
+                                - generic:
+                                  - 'img "Telecommuting: unrecognizable man
+                                    sitting at the desk of his home office and
+                                    doing work on his laptop PC" [ref=s1e844]'
+                          - link "Your tight hips are hurting your knees. Here’s how to fix them" [ref=s1e845]:
+                            - /url: /2025/04/25/health/hip-exercises-knee-pain-relief-wellness/index.html
+                            - generic [ref=s1e847]: Your tight hips are hurting your knees. Here’s how to fix
+                                them
+                        - generic [ref=s1e849]:
+                          - link "111972_Baby Elephant Zoo CL.00_00_26_26.Still001.jpg" [ref=s1e850]:
+                            - /url: /2025/04/23/us/video/baby-elephant-st-louis-zoo-cprog-digvid
+                            - generic [ref=s1e852]:
+                              - generic [ref=s1e854]:
+                                - generic:
+                                  - img "111972_Baby Elephant Zoo
+                                    CL.00_00_26_26.Still001.jpg" [ref=s1e860]
+                          - link "See baby elephant make its debut at the Saint Louis Zoo 0:30" [ref=s1e861]:
+                            - /url: /2025/04/23/us/video/baby-elephant-st-louis-zoo-cprog-digvid
+                            - generic [ref=s1e863]:
+                              - text: See baby elephant make its debut at the Saint Louis Zoo
+                              - generic [ref=s1e865]: 0:30
+              - generic [ref=s1e868]
+            - generic [ref=s1e871]:
+              - heading "Featured Sections" [level=2] [ref=s1e873]
+              - generic [ref=s1e874]:
+                - generic [ref=s1e876]:
+                  - generic [ref=s1e879]:
+                    - heading "Space and science" [level=2] [ref=s1e883]
+                    - generic [ref=s1e885]:
+                      - generic [ref=s1e886]:
+                        - generic [ref=s1e887]:
+                          - link "Ant-fossil-photograph-CREDIT-Anderson-Lepeco.jpg" [ref=s1e888]:
+                            - /url: /2025/04/24/science/fossil-oldest-known-ant/index.html
+                            - generic [ref=s1e890]:
+                              - generic [ref=s1e892]:
+                                - generic:
+                                  - img
+                                    "Ant-fossil-photograph-CREDIT-Anderson-Lepeco.jpg"
+                                    [ref=s1e898]
+                          - link "‘Extraordinary’ fossil reveals the oldest ant species known to science" [ref=s1e899]:
+                            - /url: /2025/04/24/science/fossil-oldest-known-ant/index.html
+                            - generic [ref=s1e901]: ‘Extraordinary’ fossil reveals the oldest ant species
+                                known to science
+                        - 'link "Trump’s first-term pick to run the National Science Foundation quits: ‘I have done all I can’" [ref=s1e904]':
+                          - /url: /2025/04/24/science/national-science-foundation-director-resign/index.html
+                          - generic [ref=s1e906]: "Trump’s first-term pick to run the National Science
+                              Foundation quits: ‘I have done all I can’"
+                        - link "An ancient ‘terror crocodile’ became a dinosaur-eating giant. Scientists say they now know why" [ref=s1e909]:
+                          - /url: /2025/04/23/science/terror-crocodile-dinosaur-eating-saltwater/index.html
+                          - generic [ref=s1e911]: An ancient ‘terror crocodile’ became a dinosaur-eating
+                              giant. Scientists say they now know why
+                        - link "Scientists stumble across rare evidence that Earth is peeling underneath the Sierra Nevada" [ref=s1e914]:
+                          - /url: /2025/04/18/science/lithospheric-foundering-earth-peeling-sierra-nevada/index.html
+                          - generic [ref=s1e916]: Scientists stumble across rare evidence that Earth is
+                              peeling underneath the Sierra Nevada
+                - generic [ref=s1e919]:
+                  - generic [ref=s1e922]:
+                    - link "Global Travel" [ref=s1e926]:
+                      - /url: https://www.cnn.com/travel
+                      - heading "Global Travel" [level=2] [ref=s1e927]:
+                        - text: Global Travel
+                        - img [ref=s1e928]
+                    - generic [ref=s1e931]:
+                      - generic [ref=s1e932]:
+                        - generic [ref=s1e933]:
+                          - link "Sophie Crowther" [ref=s1e934]:
+                            - /url: /travel/truth-chalet-girls-europe-skiing/index.html
+                            - generic [ref=s1e936]:
+                              - generic [ref=s1e938]:
+                                - generic:
+                                  - img "Sophie Crowther" [ref=s1e944]
+                          - link "The truth about the ‘chalet girls’ who look after the needs of Europe’s wealthy skiers" [ref=s1e945]:
+                            - /url: /travel/truth-chalet-girls-europe-skiing/index.html
+                            - generic [ref=s1e947]: The truth about the ‘chalet girls’ who look after the
+                                needs of Europe’s wealthy skiers
+                        - link "It was the hedonistic party capital of Europe. Now Gen Z wants a different kind of fun" [ref=s1e950]:
+                          - /url: /travel/berlin-party-capital-europe-gen-z/index.html
+                          - generic [ref=s1e952]: It was the hedonistic party capital of Europe. Now Gen Z
+                              wants a different kind of fun
+                        - link "‘It feels terrifying:’ Why some Americans are anxious about traveling abroad under Trump" [ref=s1e955]:
+                          - /url: /2025/04/07/travel/americans-worried-travel-abroad-europe/index.html
+                          - generic [ref=s1e957]: ‘It feels terrifying:’ Why some Americans are anxious
+                              about traveling abroad under Trump
+                        - link "He spent $1M restoring a cruise ship he bought on Craigslist. Now he’s mourning its ‘horrible death’" [ref=s1e960]:
+                          - /url: /2025/04/14/travel/craigslist-cruise-ship-horrible-end/index.html
+                          - generic [ref=s1e962]: He spent $1M restoring a cruise ship he bought on
+                              Craigslist. Now he’s mourning its ‘horrible death’
+                - generic [ref=s1e965]:
+                  - generic [ref=s1e967]
+            - generic [ref=s1e973]:
+              - generic [ref=s1e975]:
+                - generic [ref=s1e977]:
+                  - generic [ref=s1e980]:
+                    - heading "Global Business" [level=2] [ref=s1e984]
+                    - generic [ref=s1e986]:
+                      - generic [ref=s1e987]:
+                        - generic [ref=s1e988]:
+                          - link "Mark Zuckerberg; Dr. Priscilla Chan" [ref=s1e989]:
+                            - /url: /2025/04/25/tech/chan-zuckerberg-primary-school-closing/index.html
+                            - generic [ref=s1e991]:
+                              - generic [ref=s1e993]:
+                                - generic:
+                                  - img "Mark Zuckerberg; Dr. Priscilla Chan"
+                                    [ref=s1e999]
+                          - link "A tuition-free school created by Mark Zuckerberg and Priscilla Chan will shutter next year" [ref=s1e1000]:
+                            - /url: /2025/04/25/tech/chan-zuckerberg-primary-school-closing/index.html
+                            - generic [ref=s1e1002]: A tuition-free school created by Mark Zuckerberg and
+                                Priscilla Chan will shutter next year
+                        - link "Twelve states sue the Trump administration over ‘tax hikes’ through tariffs" [ref=s1e1005]:
+                          - /url: /2025/04/23/business/twelve-states-sue-trump-tariffs/index.html
+                          - generic [ref=s1e1007]: Twelve states sue the Trump administration over ‘tax
+                              hikes’ through tariffs
+                        - link "Jersey Mike’s longtime CEO and founder steps down after $8 billion sale to private equity" [ref=s1e1010]:
+                          - /url: /2025/04/24/business/jersey-mikes-new-ceo/index.html
+                          - generic [ref=s1e1012]: Jersey Mike’s longtime CEO and founder steps down after
+                              $8 billion sale to private equity
+                        - link "Say goodbye to the $5 T-shirt" [ref=s1e1015]:
+                          - /url: /2025/04/22/business/clothing-t-shirts-tariffs/index.html
+                          - generic [ref=s1e1017]: Say goodbye to the $5 T-shirt
+                - generic [ref=s1e1020]:
+                  - generic [ref=s1e1023]:
+                    - heading "Style" [level=2] [ref=s1e1027]
+                    - generic [ref=s1e1029]:
+                      - generic [ref=s1e1030]:
+                        - generic [ref=s1e1031]:
+                          - link "Pedro Pascal attends the European Premiere of Marvel Studios' 'Thunderbolts*' at Cineworld Leicester Square in London, England, on April 22, 2025. Look of the Week" [ref=s1e1032]:
+                            - /url: /2025/04/23/style/pedro-pascals-trans-women-tee-intl-scli/index.html
+                            - generic [ref=s1e1034]:
+                              - generic [ref=s1e1035]:
+                                - generic:
+                                  - img "Pedro Pascal attends the European
+                                    Premiere of Marvel Studios' 'Thunderbolts*'
+                                    at Cineworld Leicester Square in London,
+                                    England, on April 22, 2025." [ref=s1e1042]
+                                - generic [ref=s1e1044]: Look of the Week
+                          - 'link "‘Protect the dolls’: Why celebrities are wearing this viral T-shirt" [ref=s1e1047]':
+                            - /url: /2025/04/23/style/pedro-pascals-trans-women-tee-intl-scli/index.html
+                            - generic [ref=s1e1049]: "‘Protect the dolls’: Why celebrities are wearing this
+                                viral T-shirt"
+                        - link "Russian artist reveals mystery Trump portrait gifted by Putin to the US president" [ref=s1e1052]:
+                          - /url: /2025/04/22/style/russian-artist-trump-portrait-putin-intl/index.html
+                          - generic [ref=s1e1054]: Russian artist reveals mystery Trump portrait gifted by
+                              Putin to the US president
+                        - link "Why Pope Francis’ signet ring will be destroyed following his death" [ref=s1e1057]:
+                          - /url: /2025/04/22/style/pope-francis-fishermans-ring-destroyed/index.html
+                          - generic [ref=s1e1059]: Why Pope Francis’ signet ring will be destroyed following
+                              his death
+                        - link "Most striking celebrity looks from Coachella" [ref=s1e1062]:
+                          - /url: /2025/04/16/style/coachella-celebrity-looks-fashion/index.html
+                          - generic [ref=s1e1064]: Most striking celebrity looks from Coachella
+                - generic [ref=s1e1067]:
+                  - generic [ref=s1e1070]:
+                    - link "SPORT" [ref=s1e1074]:
+                      - /url: https://www.cnn.com/sport
+                      - heading "SPORT" [level=2] [ref=s1e1075]:
+                        - text: SPORT
+                        - img [ref=s1e1076]
+                    - generic [ref=s1e1079]:
+                      - generic [ref=s1e1080]:
+                        - generic [ref=s1e1081]:
+                          - link "The jersey worn by Kobe Bryant during his rookie Los Angeles Lakers season in 1996-97 sold for a record price at auction." [ref=s1e1082]:
+                            - /url: /2025/04/25/sport/kobe-bryant-debut-jersey-auction-sale-nba-spt-intl/index.html
+                            - generic [ref=s1e1084]:
+                              - generic [ref=s1e1086]:
+                                - generic:
+                                  - img "The jersey worn by Kobe Bryant during
+                                    his rookie Los Angeles Lakers season in
+                                    1996-97 sold for a record price at auction."
+                                    [ref=s1e1092]
+                          - link "Kobe Bryant’s debut jersey sells for $7 million at auction, a record price for memorabilia tied to the NBA legend" [ref=s1e1093]:
+                            - /url: /2025/04/25/sport/kobe-bryant-debut-jersey-auction-sale-nba-spt-intl/index.html
+                            - generic [ref=s1e1095]: Kobe Bryant’s debut jersey sells for $7 million at
+                                auction, a record price for memorabilia tied to
+                                the NBA legend
+                        - link "Oklahoma City Thunder overturn 29-point deficit to take a 3-0 series lead over Grizzlies after Ja Morant leaves game injured" [ref=s1e1098]:
+                          - /url: /2025/04/25/sport/oklahoma-city-thunder-memphis-grizzlies-ja-morant-injured-spt-intl/index.html
+                          - generic [ref=s1e1100]: Oklahoma City Thunder overturn 29-point deficit to take a
+                              3-0 series lead over Grizzlies after Ja Morant
+                              leaves game injured
+                        - link "Rory McIlroy reveals he spoke to two US presidents after his Masters win" [ref=s1e1103]:
+                          - /url: /2025/04/24/sport/rory-mcilroy-masters-victory-celebrations-golf-spt-intl/index.html
+                          - generic [ref=s1e1105]: Rory McIlroy reveals he spoke to two US presidents after
+                              his Masters win
+                        - link "Chicago Bears great Steve McMichael dies at 67 after battle with ALS" [ref=s1e1108]:
+                          - /url: /2025/04/23/sport/chicago-bears-steve-mcmichael-dies-als-spt/index.html
+                          - generic [ref=s1e1110]: Chicago Bears great Steve McMichael dies at 67 after
+                              battle with ALS
+              - generic [ref=s1e1113]
+            - generic [ref=s1e1116]:
+              - generic [ref=s1e1118]:
+                - generic [ref=s1e1120]:
+                  - generic [ref=s1e1123]:
+                    - heading "US Politics" [level=2] [ref=s1e1127]
+                    - generic [ref=s1e1129]:
+                      - generic [ref=s1e1130]:
+                        - generic [ref=s1e1131]:
+                          - link "President Donald Trump hosts his first cabinet meeting in Washington, DC, on February 26. For Subscribers" [ref=s1e1132]:
+                            - /url: /2025/04/24/politics/donald-trump-cabinet-policy-ethics/index.html
+                            - generic [ref=s1e1134]:
+                              - generic [ref=s1e1135]:
+                                - generic:
+                                  - img "President Donald Trump hosts his first
+                                    cabinet meeting in Washington, DC, on
+                                    February 26." [ref=s1e1142]
+                                - generic [ref=s1e1144]: For Subscribers
+                          - link "Trump staffed his Cabinet with wealthy advisers. Some stand to gain even more from recent policy shifts" [ref=s1e1147]:
+                            - /url: /2025/04/24/politics/donald-trump-cabinet-policy-ethics/index.html
+                            - generic [ref=s1e1149]: Trump staffed his Cabinet with wealthy advisers. Some
+                                stand to gain even more from recent policy
+                                shifts
+                        - 'link "Analysis: Driven by grievance, Trump returned with a plan for swift, shocking change" [ref=s1e1152]':
+                          - /url: /2025/04/24/politics/president-trump-government-shock/index.html
+                          - generic [ref=s1e1154]:
+                            - generic [ref=s1e1155]:
+                              - text: Analysis
+                              - text: ":"
+                            - text: Driven by grievance, Trump returned with a plan for swift, shocking change
+                        - link "Three judges, including two Trump appointees, rule against the Department of Education’s anti-DEI policy" [ref=s1e1159]:
+                          - /url: /2025/04/24/politics/education-dei-policy-blocked/index.html
+                          - generic [ref=s1e1161]: Three judges, including two Trump appointees, rule
+                              against the Department of Education’s anti-DEI
+                              policy
+                        - link "Trump offers private dinner to the top investors in his meme coin" [ref=s1e1164]:
+                          - /url: /2025/04/24/politics/meme-coin-trump-dinner/index.html
+                          - generic [ref=s1e1166]: Trump offers private dinner to the top investors in his
+                              meme coin
+                - generic [ref=s1e1169]:
+                  - generic [ref=s1e1172]:
+                    - heading "health and wellness" [level=2] [ref=s1e1176]
+                    - generic [ref=s1e1178]:
+                      - generic [ref=s1e1179]:
+                        - generic [ref=s1e1180]:
+                          - link "crispy buffalo tofu salad" [ref=s1e1181]:
+                            - /url: /2025/04/25/health/how-to-cook-tofu-wellness/index.html
+                            - generic [ref=s1e1183]:
+                              - generic [ref=s1e1185]:
+                                - generic:
+                                  - img "crispy buffalo tofu salad" [ref=s1e1191]
+                          - link "How to cook tofu so even meat-and-potatoes diners will dig it" [ref=s1e1192]:
+                            - /url: /2025/04/25/health/how-to-cook-tofu-wellness/index.html
+                            - generic [ref=s1e1194]: How to cook tofu so even meat-and-potatoes diners will
+                                dig it
+                        - link "Metabolic syndrome is a big risk factor for early dementia, and what you do makes a difference, study suggests" [ref=s1e1197]:
+                          - /url: /2025/04/23/health/metabolic-syndrome-early-dementia-wellness/index.html
+                          - generic [ref=s1e1199]: Metabolic syndrome is a big risk factor for early
+                              dementia, and what you do makes a difference,
+                              study suggests
+                        - link "A 3-week-old baby received a heart transplant 14 years ago and gained a ‘donor mom’" [ref=s1e1202]:
+                          - /url: /2025/04/23/health/infant-heart-transplant-wellness/index.html
+                          - generic [ref=s1e1204]: A 3-week-old baby received a heart transplant 14 years
+                              ago and gained a ‘donor mom’
+                        - link "Marijuana hospital visits linked to dementia diagnosis within 5 years, study finds" [ref=s1e1207]:
+                          - /url: /2025/04/20/health/marijuana-dementia-wellness/index.html
+                          - generic [ref=s1e1209]: Marijuana hospital visits linked to dementia diagnosis
+                              within 5 years, study finds
+                - generic [ref=s1e1212]:
+                  - generic [ref=s1e1215]:
+                    - heading "Tech" [level=2] [ref=s1e1219]
+                    - generic [ref=s1e1221]:
+                      - generic [ref=s1e1222]:
+                        - generic [ref=s1e1223]:
+                          - link "orb sam altman human ai 1.jpg" [ref=s1e1224]:
+                            - /url: /2025/04/21/tech/orb-tools-for-humanity-sam-altman-human-verification/index.html
+                            - generic [ref=s1e1226]:
+                              - generic [ref=s1e1228]:
+                                - generic:
+                                  - img "orb sam altman human ai 1.jpg"
+                                    [ref=s1e1234]
+                          - link "Here’s what happened when I tried the Sam Altman-backed orb face scanner" [ref=s1e1235]:
+                            - /url: /2025/04/21/tech/orb-tools-for-humanity-sam-altman-human-verification/index.html
+                            - generic [ref=s1e1237]: Here’s what happened when I tried the Sam Altman-backed
+                                orb face scanner
+                        - link "Drones can deliver supplies on Mount Everest this year, and it may change climbing forever" [ref=s1e1240]:
+                          - /url: /2025/04/20/travel/nepal-mount-everest-drone-technology-intl-hnk/index.html
+                          - generic [ref=s1e1242]: Drones can deliver supplies on Mount Everest this year,
+                              and it may change climbing forever
+                        - link "Chinese robots ran against humans in the world’s first humanoid half-marathon. They lost by a mile" [ref=s1e1245]:
+                          - /url: /2025/04/19/asia/china-first-humanoid-robot-half-marathon-intl-hnk/index.html
+                          - generic [ref=s1e1247]: Chinese robots ran against humans in the world’s first
+                              humanoid half-marathon. They lost by a mile
+                        - link "White House Easter Egg Roll features Big Tech logos, branding" [ref=s1e1250]:
+                          - /url: /2025/04/21/politics/white-house-easter-egg-roll-big-tech-branding/index.html
+                          - generic [ref=s1e1252]: White House Easter Egg Roll features Big Tech logos,
+                              branding
+            - generic [ref=s1e1256]:
+              - heading "Photos You Should See" [level=2] [ref=s1e1258]
+              - generic [ref=s1e1259]:
+                - generic [ref=s1e1261]:
+                  - generic [ref=s1e1264]:
+                    - generic [ref=s1e1268]:
+                      - generic [ref=s1e1269]:
+                        - generic [ref=s1e1270]:
+                          - link "Pope Francis (L) waves at the end of his weekly general audience at Saint Peter's Square in the Vatican on October 26, 2022. (Photo by Vincenzo PINTO / AFP) (Photo by VINCENZO PINTO/AFP via Getty Images) Gallery" [ref=s1e1271]:
+                            - /url: /2022/07/26/world/gallery/pope-francis/index.html
+                            - generic [ref=s1e1273]:
+                              - generic [ref=s1e1274]:
+                                - generic:
+                                  - img "Pope Francis (L) waves at the end of
+                                    his weekly general audience at Saint Peter's
+                                    Square in the Vatican on October 26, 2022.
+                                    (Photo by Vincenzo PINTO / AFP) (Photo by
+                                    VINCENZO PINTO/AFP via Getty Images)"
+                                    [ref=s1e1281]
+                                - generic [ref=s1e1283]: Gallery
+                          - link "Pope Francis’ life in pictures" [ref=s1e1286]:
+                            - /url: /2022/07/26/world/gallery/pope-francis/index.html
+                            - generic [ref=s1e1288]: Pope Francis’ life in pictures
+                        - generic [ref=s1e1290]:
+                          - link "Hours after the death of Pope Francis is announced, tourists and the faithful light candles in memory of the pontiff at Notre-Dame Cathedral in Paris, France, on April 21, 2025. (Photo by Samuel Boivin/NurPhoto via AP) Gallery" [ref=s1e1291]:
+                            - /url: /2025/04/21/world/gallery/pope-francis-death-reaction/index.html
+                            - generic [ref=s1e1293]:
+                              - generic [ref=s1e1294]:
+                                - generic:
+                                  - img "Hours after the death of Pope Francis
+                                    is announced, tourists and the faithful
+                                    light candles in memory of the pontiff at
+                                    Notre-Dame Cathedral in Paris, France, on
+                                    April 21, 2025. (Photo by Samuel
+                                    Boivin/NurPhoto via AP)" [ref=s1e1301]
+                                - generic [ref=s1e1303]: Gallery
+                          - 'link "In pictures: The world reacts to Pope Francis’ death" [ref=s1e1306]':
+                            - /url: /2025/04/21/world/gallery/pope-francis-death-reaction/index.html
+                            - generic [ref=s1e1308]: "In pictures: The world reacts to Pope Francis’ death"
+                        - generic [ref=s1e1310]:
+                          - link "<strong>\"Mahmoud Ajjour, Aged Nine.\"</strong> Mahmoud Ajjour, who was injured during an <a href=\"https://www.cnn.com/world/middleeast/israel\">Israeli attack on Gaza City</a> in March 2024, finds refuge and medical help in Doha, Qatar, on June 28, 2024. Winner, World Press Photo of the Year. Gallery" [ref=s1e1311]:
+                            - /url: /2025/04/18/world/gallery/world-press-photo-2025/index.html
+                            - generic [ref=s1e1313]:
+                              - generic [ref=s1e1314]:
+                                - generic:
+                                  - img "<strong>\"Mahmoud Ajjour, Aged
+                                    Nine.\"</strong> Mahmoud Ajjour, who was
+                                    injured during an <a
+                                    href=\"https://www.cnn.com/world/middleeast/israel\">Israeli
+                                    attack on Gaza City</a> in March 2024, finds
+                                    refuge and medical help in Doha, Qatar, on
+                                    June 28, 2024. Winner, World Press Photo of
+                                    the Year." [ref=s1e1321]
+                                - generic [ref=s1e1323]: Gallery
+                          - 'link "World Press Photo 2025: Award Winners Unveiled" [ref=s1e1326]':
+                            - /url: /2025/04/18/world/gallery/world-press-photo-2025/index.html
+                            - generic [ref=s1e1328]: "World Press Photo 2025: Award Winners Unveiled"
+                        - generic [ref=s1e1330]:
+                          - 'link "Photo by Lisa Michele Burns. Location: James Price Point, WA Gallery" [ref=s1e1331]':
+                            - /url: /style/gallery/australia-landscape-photographer-lisa-michele-burns-spc/index.html
+                            - generic [ref=s1e1333]:
+                              - generic [ref=s1e1334]:
+                                - generic:
+                                  - 'img "Photo by Lisa Michele Burns. Location:
+                                    James Price Point, WA" [ref=s1e1341]'
+                                - generic [ref=s1e1343]: Gallery
+                          - link "Australia’s jaw-dropping landscapes, from east to west" [ref=s1e1346]:
+                            - /url: /style/gallery/australia-landscape-photographer-lisa-michele-burns-spc/index.html
+                            - generic [ref=s1e1348]: Australia’s jaw-dropping landscapes, from east to west
+                        - generic [ref=s1e1350]:
+                          - link "Bison aren’t just beneficial for helping environments store more carbon, they’re often described as <a href=\"https://www.rewildingbritain.org.uk/why-rewild/reintroductions-key-species/key-species/european-bison#:~:text=The%20bison%20is%20a%20keystone,butterflies%2C%20insects%2C%20and%20reptiles.\" target=\"_blank\">ecosystem engineers</a>. By debarking trees, they clear wooded patches, allowing grassland plant species to grow. Their unique wallowing (soil-bathing) behavior creates habitats for a host of ground-dwelling insect and reptile species, and by <a href=\"https://rewildingeurope.com/impact-stories/european-bison/#:~:text=In%20addition%2C%20bison%20disperse%20nutrients,floral%20biodiversity%20and%20supports%20pollinators).\" target=\"_blank\">dispersing seeds</a> stuck to their fur and in their dung, they help to further improve ecosystem diversity. Gallery" [ref=s1e1351]:
+                            - /url: /science/gallery/european-bison-photos-c2e-spc/index.html
+                            - generic [ref=s1e1353]:
+                              - generic [ref=s1e1354]:
+                                - generic:
+                                  - img "Bison aren’t just beneficial for
+                                    helping environments store more carbon,
+                                    they’re often described as <a
+                                    href=\"https://www.rewildingbritain.org.uk/why-rewild/reintroductions-key-species/key-species/european-bison#:~:text=The%20bison%20is%20a%20keystone,butterflies%2C%20insects%2C%20and%20reptiles.\"
+                                    target=\"_blank\">ecosystem engineers</a>.
+                                    By debarking trees, they clear wooded
+                                    patches, allowing grassland plant species to
+                                    grow. Their unique wallowing (soil-bathing)
+                                    behavior creates habitats for a host of
+                                    ground-dwelling insect and reptile species,
+                                    and by <a
+                                    href=\"https://rewildingeurope.com/impact-stories/european-bison/#:~:text=In%20addition%2C%20bison%20disperse%20nutrients,floral%20biodiversity%20and%20supports%20pollinators).\"
+                                    target=\"_blank\">dispersing seeds</a> stuck
+                                    to their fur and in their dung, they help to
+                                    further improve ecosystem diversity."
+                                    [ref=s1e1361]
+                                - generic [ref=s1e1363]: Gallery
+                          - link "The return of the European bison" [ref=s1e1366]:
+                            - /url: /science/gallery/european-bison-photos-c2e-spc/index.html
+                            - generic [ref=s1e1368]: The return of the European bison
+                        - generic [ref=s1e1370]:
+                          - link "In this Jan. 9, 2014 photo, Val Kilmer poses for a portrait in Nashville, Tenn. (AP Photo/Mark Humphrey) Gallery" [ref=s1e1371]:
+                            - /url: /2025/01/13/world/gallery/people-we-lost-2025/index.html
+                            - generic [ref=s1e1373]:
+                              - generic [ref=s1e1374]:
+                                - generic:
+                                  - img "In this Jan. 9, 2014 photo, Val Kilmer
+                                    poses for a portrait in Nashville, Tenn. (AP
+                                    Photo/Mark Humphrey)" [ref=s1e1381]
+                                - generic [ref=s1e1383]: Gallery
+                          - link "People we’ve lost in 2025" [ref=s1e1386]:
+                            - /url: /2025/01/13/world/gallery/people-we-lost-2025/index.html
+                            - generic [ref=s1e1388]: People we’ve lost in 2025
+                - generic [ref=s1e1391]:
+                  - generic [ref=s1e1393]
+            - generic [ref=s1e1398]:
+              - generic [ref=s1e1400]:
+                - heading "In Case You Missed It" [level=2] [ref=s1e1402]
+                - generic [ref=s1e1403]:
+                  - generic [ref=s1e1405]:
+                    - generic [ref=s1e1408]:
+                      - generic [ref=s1e1412]:
+                        - generic [ref=s1e1414]:
+                          - link "_ROB8443-Edit.jpg Rob Ball" [ref=s1e1415]:
+                            - /url: /2025/04/21/style/benidorm-spain-holiday-photography/index.html
+                            - generic [ref=s1e1417]:
+                              - generic [ref=s1e1418]:
+                                - generic:
+                                  - img "_ROB8443-Edit.jpg" [ref=s1e1425]
+                                - generic [ref=s1e1427]: Rob Ball
+                          - link "It was once a small Spanish fishing town. Now it attracts millions of tourists every year" [ref=s1e1428]:
+                            - /url: /2025/04/21/style/benidorm-spain-holiday-photography/index.html
+                            - generic [ref=s1e1430]: It was once a small Spanish fishing town. Now it attracts
+                                millions of tourists every year
+                  - generic [ref=s1e1433]:
+                    - generic [ref=s1e1436]:
+                      - generic [ref=s1e1440]:
+                        - generic [ref=s1e1441]:
+                          - 'link "Analysis: Elon Musk’s government role gets even murkier" [ref=s1e1443]':
+                            - /url: /2025/04/23/politics/elon-musk-doge-role-tesla-trump-what-matters/index.html
+                            - generic [ref=s1e1445]:
+                              - generic [ref=s1e1446]:
+                                - text: Analysis
+                                - text: ":"
+                              - text: Elon Musk’s government role gets even murkier
+                          - link "What to know about the Trump administration task force targeting Harvard" [ref=s1e1450]:
+                            - /url: /2025/04/24/politics/what-to-know-trump-task-force-harvard/index.html
+                            - generic [ref=s1e1452]: What to know about the Trump administration task force
+                                targeting Harvard
+                          - link "Walgreens to pay up to $350 million in US opioid settlement" [ref=s1e1455]:
+                            - /url: /2025/04/22/business/walgreens-opioid-settlement-hnk/index.html
+                            - generic [ref=s1e1457]: Walgreens to pay up to $350 million in US opioid
+                                settlement
+                          - link "Hotel prices soar in Rome ahead of Pope Francis’ funeral" [ref=s1e1460]:
+                            - /url: /2025/04/23/travel/rome-pope-francis-funeral-conclave/index.html
+                            - generic [ref=s1e1462]: Hotel prices soar in Rome ahead of Pope Francis’ funeral
+                          - link "Lori Vallow Daybell found guilty of conspiring to murder her estranged husband" [ref=s1e1465]:
+                            - /url: /2025/04/22/us/lori-vallow-daybell-trial/index.html
+                            - generic [ref=s1e1467]: Lori Vallow Daybell found guilty of conspiring to murder
+                                her estranged husband
+                          - link "Holger Rune stuns Carlos Alcaraz to win Barcelona Open and end two-year trophy drought" [ref=s1e1470]:
+                            - /url: /2025/04/21/sport/holger-rune-carlos-alcaraz-barcelona-open-spt-intl/index.html
+                            - generic [ref=s1e1472]: Holger Rune stuns Carlos Alcaraz to win Barcelona Open
+                                and end two-year trophy drought
+                          - link "Cancer death rates declining, new report says, but diagnosis rates are on the rise for women" [ref=s1e1475]:
+                            - /url: /2025/04/21/health/cancer-women-diagnosis/index.html
+                            - generic [ref=s1e1477]: Cancer death rates declining, new report says, but
+                                diagnosis rates are on the rise for women
+                          - link "Los Angeles 2028 Olympics will feature mixed-gender golf event, as new venues confirmed for Games" [ref=s1e1480]:
+                            - /url: /2025/04/16/sport/los-angeles-olympics-golf-venues-spt/index.html
+                            - generic [ref=s1e1482]: Los Angeles 2028 Olympics will feature mixed-gender golf
+                                event, as new venues confirmed for Games
+    - contentinfo [ref=s1e1486]:
+      - generic [ref=s1e1487]:
+        - search [ref=s1e1489]:
+          - textbox "Search" [ref=s1e1490]
+          - button "Submit" [ref=s1e1491]
+        - navigation [ref=s1e1493]:
+          - list [ref=s1e1494]:
+            - listitem [ref=s1e1495]:
+              - link "World" [ref=s1e1496]:
+                - /url: https://edition.cnn.com/world
+              - list [ref=s1e1497]:
+                - listitem [ref=s1e1498]:
+                  - link "World Africa" [ref=s1e1499]:
+                    - /url: https://edition.cnn.com/world/africa
+                    - text: Africa
+                - listitem [ref=s1e1500]:
+                  - link "World Americas" [ref=s1e1501]:
+                    - /url: https://edition.cnn.com/world/americas
+                    - text: Americas
+                - listitem [ref=s1e1502]:
+                  - link "World Asia" [ref=s1e1503]:
+                    - /url: https://edition.cnn.com/world/asia
+                    - text: Asia
+                - listitem [ref=s1e1504]:
+                  - link "World Australia" [ref=s1e1505]:
+                    - /url: https://edition.cnn.com/world/australia
+                    - text: Australia
+                - listitem [ref=s1e1506]:
+                  - link "World China" [ref=s1e1507]:
+                    - /url: https://edition.cnn.com/world/china
+                    - text: China
+                - listitem [ref=s1e1508]:
+                  - link "World Europe" [ref=s1e1509]:
+                    - /url: https://edition.cnn.com/world/europe
+                    - text: Europe
+                - listitem [ref=s1e1510]:
+                  - link "World India" [ref=s1e1511]:
+                    - /url: https://edition.cnn.com/world/india
+                    - text: India
+                - listitem [ref=s1e1512]:
+                  - link "World Middle East" [ref=s1e1513]:
+                    - /url: https://edition.cnn.com/world/middle-east
+                    - text: Middle East
+                - listitem [ref=s1e1514]:
+                  - link "World United Kingdom" [ref=s1e1515]:
+                    - /url: https://edition.cnn.com/world/united-kingdom
+                    - text: United Kingdom
+            - listitem [ref=s1e1516]:
+              - link "US Politics" [ref=s1e1517]:
+                - /url: https://edition.cnn.com/politics
+              - list [ref=s1e1518]:
+                - listitem [ref=s1e1519]:
+                  - link "US Politics SCOTUS" [ref=s1e1520]:
+                    - /url: https://www.cnn.com/politics/supreme-court
+                    - text: SCOTUS
+                - listitem [ref=s1e1521]:
+                  - link "US Politics Congress" [ref=s1e1522]:
+                    - /url: https://www.cnn.com/politics/congress
+                    - text: Congress
+                - listitem [ref=s1e1523]:
+                  - link "US Politics Facts First" [ref=s1e1524]:
+                    - /url: https://www.cnn.com/politics/fact-check
+                    - text: Facts First
+                - listitem [ref=s1e1525]:
+                  - link "US Politics 2025 Elections" [ref=s1e1526]:
+                    - /url: https://www.cnn.com/election/2025
+                    - text: 2025 Elections
+            - listitem [ref=s1e1527]:
+              - link "Business" [ref=s1e1528]:
+                - /url: https://edition.cnn.com/business
+              - list [ref=s1e1529]:
+                - listitem [ref=s1e1530]:
+                  - link "Business Tech" [ref=s1e1531]:
+                    - /url: https://edition.cnn.com/business/tech
+                    - text: Tech
+                - listitem [ref=s1e1532]:
+                  - link "Business Media" [ref=s1e1533]:
+                    - /url: https://edition.cnn.com/business/media
+                    - text: Media
+                - listitem [ref=s1e1534]:
+                  - link "Business Calculators" [ref=s1e1535]:
+                    - /url: https://edition.cnn.com/business/financial-calculators
+                    - text: Calculators
+                - listitem [ref=s1e1536]:
+                  - link "Business Videos" [ref=s1e1537]:
+                    - /url: https://edition.cnn.com/business/videos
+                    - text: Videos
+            - listitem [ref=s1e1538]:
+              - link "Markets" [ref=s1e1539]:
+                - /url: https://edition.cnn.com/markets
+              - list [ref=s1e1540]:
+                - listitem [ref=s1e1541]:
+                  - link "Markets Pre-markets" [ref=s1e1542]:
+                    - /url: https://edition.cnn.com/markets/premarkets
+                    - text: Pre-markets
+                - listitem [ref=s1e1543]:
+                  - link "Markets After-Hours" [ref=s1e1544]:
+                    - /url: https://edition.cnn.com/markets/after-hours
+                    - text: After-Hours
+                - listitem [ref=s1e1545]:
+                  - link "Markets Fear & Greed" [ref=s1e1546]:
+                    - /url: https://edition.cnn.com/markets/fear-and-greed
+                    - text: Fear & Greed
+                - listitem [ref=s1e1547]:
+                  - link "Markets Investing" [ref=s1e1548]:
+                    - /url: https://edition.cnn.com/business/investing
+                    - text: Investing
+                - listitem [ref=s1e1549]:
+                  - link "Markets Markets Now" [ref=s1e1550]:
+                    - /url: https://edition.cnn.com/business/markets-now
+                    - text: Markets Now
+                - listitem [ref=s1e1551]:
+                  - link "Markets Nightcap" [ref=s1e1552]:
+                    - /url: https://edition.cnn.com/business/markets/nightcap
+                    - text: Nightcap
+            - listitem [ref=s1e1553]:
+              - link "Health" [ref=s1e1554]:
+                - /url: https://edition.cnn.com/health
+              - list [ref=s1e1555]:
+                - listitem [ref=s1e1556]:
+                  - link "Health Life, But Better" [ref=s1e1557]:
+                    - /url: https://edition.cnn.com/interactive/life-but-better/
+                    - text: Life, But Better
+                - listitem [ref=s1e1558]:
+                  - link "Health Fitness" [ref=s1e1559]:
+                    - /url: https://edition.cnn.com/health/life-but-better/fitness
+                    - text: Fitness
+                - listitem [ref=s1e1560]:
+                  - link "Health Food" [ref=s1e1561]:
+                    - /url: https://edition.cnn.com/health/life-but-better/food
+                    - text: Food
+                - listitem [ref=s1e1562]:
+                  - link "Health Sleep" [ref=s1e1563]:
+                    - /url: https://edition.cnn.com/health/life-but-better/sleep
+                    - text: Sleep
+                - listitem [ref=s1e1564]:
+                  - link "Health Mindfulness" [ref=s1e1565]:
+                    - /url: https://edition.cnn.com/health/life-but-better/mindfulness
+                    - text: Mindfulness
+                - listitem [ref=s1e1566]:
+                  - link "Health Relationships" [ref=s1e1567]:
+                    - /url: https://edition.cnn.com/health/life-but-better/relationships
+                    - text: Relationships
+            - listitem [ref=s1e1568]:
+              - link "Entertainment" [ref=s1e1569]:
+                - /url: https://edition.cnn.com/entertainment
+              - list [ref=s1e1570]:
+                - listitem [ref=s1e1571]:
+                  - link "Entertainment Movies" [ref=s1e1572]:
+                    - /url: https://edition.cnn.com/entertainment/movies
+                    - text: Movies
+                - listitem [ref=s1e1573]:
+                  - link "Entertainment Television" [ref=s1e1574]:
+                    - /url: https://edition.cnn.com/entertainment/tv-shows
+                    - text: Television
+                - listitem [ref=s1e1575]:
+                  - link "Entertainment Celebrity" [ref=s1e1576]:
+                    - /url: https://edition.cnn.com/entertainment/celebrities
+                    - text: Celebrity
+            - listitem [ref=s1e1577]:
+              - link "Tech" [ref=s1e1578]:
+                - /url: https://edition.cnn.com/business/tech
+              - list [ref=s1e1579]:
+                - listitem [ref=s1e1580]:
+                  - link "Tech Innovate" [ref=s1e1581]:
+                    - /url: https://edition.cnn.com/business/tech/innovate
+                    - text: Innovate
+                - listitem [ref=s1e1582]:
+                  - link "Tech Foreseeable Future" [ref=s1e1583]:
+                    - /url: https://edition.cnn.com/business/tech/foreseeable-future
+                    - text: Foreseeable Future
+                - listitem [ref=s1e1584]:
+                  - 'link "Tech Mission: Ahead" [ref=s1e1585]':
+                    - /url: https://edition.cnn.com/business/tech/mission-ahead
+                    - text: "Mission: Ahead"
+                - listitem [ref=s1e1586]:
+                  - link "Tech Work Transformed" [ref=s1e1587]:
+                    - /url: https://edition.cnn.com/business/work-transformed
+                    - text: Work Transformed
+                - listitem [ref=s1e1588]:
+                  - link "Tech Innovative Cities" [ref=s1e1589]:
+                    - /url: https://edition.cnn.com/business/tech/innovative-cities
+                    - text: Innovative Cities
+            - listitem [ref=s1e1590]:
+              - link "Style" [ref=s1e1591]:
+                - /url: https://edition.cnn.com/style
+              - list [ref=s1e1592]:
+                - listitem [ref=s1e1593]:
+                  - link "Style Arts" [ref=s1e1594]:
+                    - /url: https://edition.cnn.com/style/arts
+                    - text: Arts
+                - listitem [ref=s1e1595]:
+                  - link "Style Design" [ref=s1e1596]:
+                    - /url: https://edition.cnn.com/style/design
+                    - text: Design
+                - listitem [ref=s1e1597]:
+                  - link "Style Fashion" [ref=s1e1598]:
+                    - /url: https://edition.cnn.com/style/fashion
+                    - text: Fashion
+                - listitem [ref=s1e1599]:
+                  - link "Style Architecture" [ref=s1e1600]:
+                    - /url: https://edition.cnn.com/style/architecture
+                    - text: Architecture
+                - listitem [ref=s1e1601]:
+                  - link "Style Luxury" [ref=s1e1602]:
+                    - /url: https://edition.cnn.com/style/luxury
+                    - text: Luxury
+                - listitem [ref=s1e1603]:
+                  - link "Style Beauty" [ref=s1e1604]:
+                    - /url: https://edition.cnn.com/style/beauty
+                    - text: Beauty
+                - listitem [ref=s1e1605]:
+                  - link "Style Video" [ref=s1e1606]:
+                    - /url: https://edition.cnn.com/style/videos
+                    - text: Video
+            - listitem [ref=s1e1607]:
+              - link "Travel" [ref=s1e1608]:
+                - /url: https://edition.cnn.com/travel
+              - list [ref=s1e1609]:
+                - listitem [ref=s1e1610]:
+                  - link "Travel Destinations" [ref=s1e1611]:
+                    - /url: https://edition.cnn.com/travel/destinations
+                    - text: Destinations
+                - listitem [ref=s1e1612]:
+                  - link "Travel Food & Drink" [ref=s1e1613]:
+                    - /url: https://edition.cnn.com/travel/food-and-drink
+                    - text: Food & Drink
+                - listitem [ref=s1e1614]:
+                  - link "Travel Stay" [ref=s1e1615]:
+                    - /url: https://edition.cnn.com/travel/stay
+                    - text: Stay
+                - listitem [ref=s1e1616]:
+                  - link "Travel News" [ref=s1e1617]:
+                    - /url: https://edition.cnn.com/travel/news
+                    - text: News
+                - listitem [ref=s1e1618]:
+                  - link "Travel Videos" [ref=s1e1619]:
+                    - /url: https://edition.cnn.com/travel/videos
+                    - text: Videos
+            - listitem [ref=s1e1620]:
+              - link "Sports" [ref=s1e1621]:
+                - /url: https://edition.cnn.com/sport
+              - list [ref=s1e1622]:
+                - listitem [ref=s1e1623]:
+                  - link "Sports Football" [ref=s1e1624]:
+                    - /url: https://edition.cnn.com/sport/football
+                    - text: Football
+                - listitem [ref=s1e1625]:
+                  - link "Sports Tennis" [ref=s1e1626]:
+                    - /url: https://edition.cnn.com/sport/tennis
+                    - text: Tennis
+                - listitem [ref=s1e1627]:
+                  - link "Sports Golf" [ref=s1e1628]:
+                    - /url: https://edition.cnn.com/sport/golf
+                    - text: Golf
+                - listitem [ref=s1e1629]:
+                  - link "Sports Motorsport" [ref=s1e1630]:
+                    - /url: https://edition.cnn.com/sport/motorsport
+                    - text: Motorsport
+                - listitem [ref=s1e1631]:
+                  - link "Sports US Sports" [ref=s1e1632]:
+                    - /url: https://edition.cnn.com/sport/us-sports
+                    - text: US Sports
+                - listitem [ref=s1e1633]:
+                  - link "Sports Olympics" [ref=s1e1634]:
+                    - /url: https://edition.cnn.com/sport/paris-olympics-2024
+                    - text: Olympics
+                - listitem [ref=s1e1635]:
+                  - link "Sports Climbing" [ref=s1e1636]:
+                    - /url: https://edition.cnn.com/sport/climbing
+                    - text: Climbing
+                - listitem [ref=s1e1637]:
+                  - link "Sports Esports" [ref=s1e1638]:
+                    - /url: https://edition.cnn.com/sport/esports
+                    - text: Esports
+                - listitem [ref=s1e1639]:
+                  - link "Sports Hockey" [ref=s1e1640]:
+                    - /url: https://bleacherreport.com/nhl
+                    - text: Hockey
+            - listitem [ref=s1e1641]:
+              - link "Science" [ref=s1e1642]:
+                - /url: https://edition.cnn.com/science
+              - list [ref=s1e1643]:
+                - listitem [ref=s1e1644]:
+                  - link "Science Space" [ref=s1e1645]:
+                    - /url: https://edition.cnn.com/science/space
+                    - text: Space
+                - listitem [ref=s1e1646]:
+                  - link "Science Life" [ref=s1e1647]:
+                    - /url: https://edition.cnn.com/science/life
+                    - text: Life
+                - listitem [ref=s1e1648]:
+                  - link "Science Unearthed" [ref=s1e1649]:
+                    - /url: https://edition.cnn.com/science/unearthed
+                    - text: Unearthed
+            - listitem [ref=s1e1650]:
+              - link "Climate" [ref=s1e1651]:
+                - /url: https://edition.cnn.com/climate
+              - list [ref=s1e1652]:
+                - listitem [ref=s1e1653]:
+                  - link "Climate Solutions" [ref=s1e1654]:
+                    - /url: https://edition.cnn.com/climate/solutions
+                    - text: Solutions
+                - listitem [ref=s1e1655]:
+                  - link "Climate Weather" [ref=s1e1656]:
+                    - /url: https://edition.cnn.com/weather
+                    - text: Weather
+            - listitem [ref=s1e1657]:
+              - link "Weather" [ref=s1e1658]:
+                - /url: https://edition.cnn.com/weather
+              - list [ref=s1e1659]:
+                - listitem [ref=s1e1660]:
+                  - link "Weather Video" [ref=s1e1661]:
+                    - /url: https://edition.cnn.com/specials/weather/weather-video
+                    - text: Video
+                - listitem [ref=s1e1662]:
+                  - link "Weather Climate" [ref=s1e1663]:
+                    - /url: https://edition.cnn.com/climate
+                    - text: Climate
+            - listitem [ref=s1e1664]:
+              - link "Ukraine-Russia War" [ref=s1e1665]:
+                - /url: https://edition.cnn.com/world/europe/ukraine
+              - list
+            - listitem [ref=s1e1667]:
+              - link "Israel-Hamas War" [ref=s1e1668]:
+                - /url: https://edition.cnn.com/world/middleeast/israel
+              - list
+            - listitem [ref=s1e1670]:
+              - link "Features" [ref=s1e1671]:
+                - /url: https://edition.cnn.com/specials
+              - list [ref=s1e1672]:
+                - listitem [ref=s1e1673]:
+                  - link "Features As Equals" [ref=s1e1674]:
+                    - /url: https://edition.cnn.com/interactive/asequals
+                    - text: As Equals
+                - listitem [ref=s1e1675]:
+                  - link "Features Call to Earth" [ref=s1e1676]:
+                    - /url: https://edition.cnn.com/interactive/call-to-earth
+                    - text: Call to Earth
+                - listitem [ref=s1e1677]:
+                  - link "Features Freedom Project" [ref=s1e1678]:
+                    - /url: https://edition.cnn.com/world/freedom-project
+                    - text: Freedom Project
+                - listitem [ref=s1e1679]:
+                  - link "Features Impact Your World" [ref=s1e1680]:
+                    - /url: https://edition.cnn.com/world/impact-your-world
+                    - text: Impact Your World
+                - listitem [ref=s1e1681]:
+                  - link "Features Inside Africa" [ref=s1e1682]:
+                    - /url: https://edition.cnn.com/world/africa/inside-africa
+                    - text: Inside Africa
+                - listitem [ref=s1e1683]:
+                  - link "Features CNN Heroes" [ref=s1e1684]:
+                    - /url: https://edition.cnn.com/world/heroes
+                    - text: CNN Heroes
+            - listitem [ref=s1e1685]:
+              - link "Watch" [ref=s1e1686]:
+                - /url: https://edition.cnn.com/videos
+              - list [ref=s1e1687]:
+                - listitem [ref=s1e1688]:
+                  - link "Watch Live TV" [ref=s1e1689]:
+                    - /url: https://edition.cnn.com/live-tv
+                    - text: Live TV
+                - listitem [ref=s1e1690]:
+                  - link "Watch CNN Fast" [ref=s1e1691]:
+                    - /url: https://edition.cnn.com/videos/fast/cnni-fast
+                    - text: CNN Fast
+                - listitem [ref=s1e1692]:
+                  - link "Watch Shows A-Z" [ref=s1e1693]:
+                    - /url: https://edition.cnn.com/specials/tv/all-shows
+                    - text: Shows A-Z
+                - listitem [ref=s1e1694]:
+                  - link "Watch CNN10" [ref=s1e1695]:
+                    - /url: https://edition.cnn.com/cnn10
+                    - text: CNN10
+                - listitem [ref=s1e1696]:
+                  - link "Watch CNN Max" [ref=s1e1697]:
+                    - /url: https://www.max.com/channel/cnn-max
+                    - text: CNN Max
+                - listitem [ref=s1e1698]:
+                  - link "Watch CNN TV Schedules" [ref=s1e1699]:
+                    - /url: https://edition.cnn.com/tv/schedule/cnn
+                    - text: CNN TV Schedules
+            - listitem [ref=s1e1700]:
+              - link "Listen" [ref=s1e1701]:
+                - /url: https://edition.cnn.com/audio
+              - list [ref=s1e1702]:
+                - listitem [ref=s1e1703]:
+                  - link "Listen CNN 5 Things" [ref=s1e1704]:
+                    - /url: https://edition.cnn.com/audio/podcasts/5-things
+                    - text: CNN 5 Things
+                - listitem [ref=s1e1705]:
+                  - link "Listen Chasing Life with Dr. Sanjay Gupta" [ref=s1e1706]:
+                    - /url: https://edition.cnn.com/audio/podcasts/chasing-life
+                    - text: Chasing Life with Dr. Sanjay Gupta
+                - listitem [ref=s1e1707]:
+                  - link "Listen The Assignment with Audie Cornish" [ref=s1e1708]:
+                    - /url: https://edition.cnn.com/audio/podcasts/the-assignment
+                    - text: The Assignment with Audie Cornish
+                - listitem [ref=s1e1709]:
+                  - link "Listen One Thing" [ref=s1e1710]:
+                    - /url: https://edition.cnn.com/audio/podcasts/one-thing
+                    - text: One Thing
+                - listitem [ref=s1e1711]:
+                  - link "Listen Tug of War" [ref=s1e1712]:
+                    - /url: https://edition.cnn.com/audio/podcasts/tug-of-war
+                    - text: Tug of War
+                - listitem [ref=s1e1713]:
+                  - link "Listen CNN Political Briefing" [ref=s1e1714]:
+                    - /url: https://edition.cnn.com/audio/podcasts/political-briefing
+                    - text: CNN Political Briefing
+                - listitem [ref=s1e1715]:
+                  - link "Listen The Axe Files" [ref=s1e1716]:
+                    - /url: https://edition.cnn.com/audio/podcasts/axe-files
+                    - text: The Axe Files
+                - listitem [ref=s1e1717]:
+                  - link "Listen All There Is with Anderson Cooper" [ref=s1e1718]:
+                    - /url: https://edition.cnn.com/audio/podcasts/all-there-is-with-anderson-cooper
+                    - text: All There Is with Anderson Cooper
+                - listitem [ref=s1e1719]:
+                  - link "Listen All CNN Audio podcasts" [ref=s1e1720]:
+                    - /url: https://edition.cnn.com/audio
+                    - text: All CNN Audio podcasts
+            - listitem [ref=s1e1721]:
+              - link "Games" [ref=s1e1722]:
+                - /url: https://edition.cnn.com/games
+              - list [ref=s1e1723]:
+                - listitem [ref=s1e1724]:
+                  - link "Games Daily Crossword" [ref=s1e1725]:
+                    - /url: https://edition.cnn.com/games/play/cnn-crossword
+                    - text: Daily Crossword
+                - listitem [ref=s1e1726]:
+                  - link "Games Jumble Crossword" [ref=s1e1727]:
+                    - /url: https://edition.cnn.com/games/play/jumble-crossword-daily
+                    - text: Jumble Crossword
+                - listitem [ref=s1e1728]:
+                  - link "Games Sudoblock" [ref=s1e1729]:
+                    - /url: https://edition.cnn.com/games/play/sudoblock
+                    - text: Sudoblock
+                - listitem [ref=s1e1730]:
+                  - link "Games Sudoku" [ref=s1e1731]:
+                    - /url: https://edition.cnn.com/games/play/gd-sudoku-a197ee3904d04e9d8b64dcd9fa3ace63
+                    - text: Sudoku
+                - listitem [ref=s1e1732]:
+                  - link "Games 5 Things Quiz" [ref=s1e1733]:
+                    - /url: https://cnn.it/5thingsquiz
+                    - text: 5 Things Quiz
+            - listitem [ref=s1e1734]:
+              - link "About CNN" [ref=s1e1735]:
+                - /url: https://edition.cnn.com/about
+              - list [ref=s1e1736]:
+                - listitem [ref=s1e1737]:
+                  - link "About CNN Photos" [ref=s1e1738]:
+                    - /url: https://edition.cnn.com/world/photos
+                    - text: Photos
+                - listitem [ref=s1e1739]:
+                  - link "About CNN Investigations" [ref=s1e1740]:
+                    - /url: https://edition.cnn.com/us/cnn-investigates
+                    - text: Investigations
+                - listitem [ref=s1e1741]:
+                  - link "About CNN CNN Profiles" [ref=s1e1742]:
+                    - /url: https://edition.cnn.com/profiles
+                    - text: CNN Profiles
+                - listitem [ref=s1e1743]:
+                  - link "About CNN CNN Leadership" [ref=s1e1744]:
+                    - /url: https://edition.cnn.com/profiles/cnn-leadership
+                    - text: CNN Leadership
+                - listitem [ref=s1e1745]:
+                  - link "About CNN CNN Newsletters" [ref=s1e1746]:
+                    - /url: https://edition.cnn.com/newsletters
+                    - text: CNN Newsletters
+                - listitem [ref=s1e1747]:
+                  - link "About CNN Work for CNN" [ref=s1e1748]:
+                    - /url: https://careers.wbd.com/cnnjobs
+                    - text: Work for CNN
+        - separator [ref=s1e1749]
+        - generic [ref=s1e1750]:
+          - generic [ref=s1e1752]:
+            - link "CNN logo" [ref=s1e1753]:
+              - /url: https://edition.cnn.com
+              - img [ref=s1e1755]:
+                - generic [ref=s1e1756]
+                - generic [ref=s1e1759]:
+                  - generic [ref=s1e1760]:
+                    - generic [ref=s1e1762]
+                  - generic [ref=s1e1764]:
+                    - generic [ref=s1e1766]
+          - generic [ref=s1e1768]:
+            - link "Video" [ref=s1e1769]:
+              - /url: https://edition.cnn.com/video
+              - text: Watch
+            - link "Audio" [ref=s1e1770]:
+              - /url: https://edition.cnn.com/audio
+              - text: Listen
+            - link "Live TV" [ref=s1e1771]:
+              - /url: https://edition.cnn.com/live-tv
+            - separator [ref=s1e1772]
+            - generic [ref=s1e1773]:
+              - text: Follow CNN
+              - list [ref=s1e1775]:
+                - listitem [ref=s1e1776]:
+                  - link "Visit us on Facebook" [ref=s1e1777]:
+                    - /url: https://facebook.com/CNN
+                - listitem [ref=s1e1778]:
+                  - link "Visit us on X" [ref=s1e1779]:
+                    - /url: https://twitter.com/CNN
+                - listitem [ref=s1e1780]:
+                  - link "Visit us on Instagram" [ref=s1e1781]:
+                    - /url: https://instagram.com/CNN
+                - listitem [ref=s1e1782]:
+                  - link "TikTok" [ref=s1e1783]:
+                    - /url: https://www.tiktok.com/@cnn?lang=en
+                    - img "TikTok" [ref=s1e1784]
+                - listitem [ref=s1e1786]:
+                  - link "LinkedIn" [ref=s1e1787]:
+                    - /url: https://www.linkedin.com/company/cnn
+                    - img "LinkedIn" [ref=s1e1788]:
+                      - generic [ref=s1e1791]
+            - navigation "User Account Nav" [ref=s1e1793]:
+              - link "User Account Log In Button" [ref=s1e1795]: Sign in
+        - separator [ref=s1e1796]
+        - navigation [ref=s1e1797]:
+          - link "Terms of Use" [ref=s1e1798]:
+            - /url: https://edition.cnn.com/terms
+          - link "Privacy Policy" [ref=s1e1799]:
+            - /url: https://edition.cnn.com/privacy
+          - link "Manage Cookies+" [ref=s1e1800]:
+            - /url: "#"
+          - link "Ad Choices" [ref=s1e1801]:
+            - /url: https://edition.cnn.com/ad-choices
+          - link "Accessibility & CC" [ref=s1e1802]:
+            - /url: https://edition.cnn.com/accessibility
+          - link "About" [ref=s1e1803]:
+            - /url: https://edition.cnn.com/about
+          - link "Newsletters" [ref=s1e1804]:
+            - /url: https://edition.cnn.com/newsletters
+          - link "Transcripts" [ref=s1e1805]:
+            - /url: https://edition.cnn.com/transcripts
+        - paragraph [ref=s1e1806]:
+          - text: © 2025 Cable News Network. A Warner Bros. Discovery Company. All Rights
+              Reserved.
+          - text: CNN Sans ™ & © 2016 Cable News Network.
+  - generic:
+    - region "Cookie banner" [ref=s1e1811]:
+      - dialog "Our use of cookies and other technologies" [ref=s1e1812]:
+        - generic [ref=s1e1814]:
+          - generic [ref=s1e1816]:
+            - heading "Our use of cookies and other technologies" [level=2]
+              [ref=s1e1817]
+            - generic [ref=s1e1818]:
+              - text: We use cookies on our website to improve your browsing experience. We, our
+              - link "affiliates" [ref=s1e1819]:
+                - /url: https://www.cnn.com/affiliates
+              - text: ", and our"
+              - text: "47"
+              - text: partners store and access personal information on your device such as
+                  browsing data to gain insight into how the site is being used.
+                  You can control your cookie preferences at any time by
+                  clicking on the 'Manage Preferences' button.
+            - generic [ref=s1e1821]:
+              - heading "We and our partners process data to provide:" [level=3]
+                [ref=s1e1822]
+              - paragraph [ref=s1e1824]:
+                - text: Store and/or access information on a device. Use limited data to select
+                    advertising. Use profiles to select personalised
+                    advertising. Create profiles for personalised advertising.
+                    Use profiles to select personalised content. Create profiles
+                    to personalise content. Measure advertising performance.
+                    Measure content performance. Understand audiences through
+                    statistics or combinations of data from different sources.
+                    Develop and improve services.
+                - button "List of Partners (vendors)" [ref=s1e1825]
+          - generic [ref=s1e1827]:
+            - button "Accept All" [ref=s1e1828]
+            - button "Show Purposes" [ref=s1e1829]
+```
+
+--------------------------------- TURN 2/25 ---------------------------------
+
+[06:04:11] [APIAgent] INFO Step 2 (7.37s): Generating response...
+[06:04:16] [APIAgent] RESPONSE Step 2 (12.66s): Here's a summary of the latest news on CNN:
+
+1. **Kashmir Massacre**: Coverage includes a story on a massacre in Kashmir and its implications.
+2. **Russia-Ukraine**: Reports of increased Russian strikes on Ukraine.
+3. **Tallest Abandoned Skyscraper**: Construction of the world’s tallest abandoned skyscraper in China is set to resume.
+4. **Pope Francis**: Coverage on the burial of Pope Francis.
+5. **FBI Arrest**: An FBI arrest of a judge for alleged obstruction linked to Trump administration policies.
+6. **Virginia Giuffre**: The passing of Virginia Giuffre, a prominent Jeffrey Epstein abuse survivor.
+7. **Trump and Russia-Ukraine Deal**: Trump claims Russia and Ukraine are near a deal following discussions with Putin.
+8. **California Economy**: California surpasses Japan as the world’s fourth-largest economy.
+
+These are among the top headlines currently featured on CNN.
+[06:04:16] [APIAgent] INFO Step 2 (12.66s): No action detected in response
+
+--------------------------------- TURN 3/25 ---------------------------------
+
+[06:04:16] [APIAgent] INFO Step 2 (12.66s): Generating response...
+[06:04:21] [APIAgent] RESPONSE Step 2 (17.20s): Some of the latest news on CNN includes:
+
+1. **Kashmir Massacre**: Coverage related to a massacre in Kashmir.
+2. **Russian Strikes**: More strikes reported on Ukraine by Russia.
+3. **Abandoned Skyscraper**: Resumption of construction on the world’s tallest abandoned skyscraper in China.
+4. **Pope Francis**: Details on the burial of Pope Francis.
+5. **FBI Arrest**: A judge has been arrested for allegedly obstructing in a Trump administration-related judiciary clash.
+6. **Virginia Giuffre's Death**: Death of Virginia Giuffre, a prominent figure in the Epstein case.
+7. **Deepfake Crimes in Korea**: Issues with deepfake pornography in South Korea.
+8. **US-Russia-Ukraine Talks**: Trump claims Russia and Ukraine are close to a deal following talks with Putin.
+
+These and other top stories are currently featured on CNN's homepage.
+[06:04:21] [APIAgent] INFO Step 2 (17.21s): No action detected in response
+
+--------------------------------- TURN 4/25 ---------------------------------
+
+[06:04:21] [APIAgent] INFO Step 2 (17.21s): Generating response...
+[06:04:27] [APIAgent] RESPONSE Step 2 (23.74s): Here are the latest highlights from CNN:
+
+1. **Kashmir Massacre**: Details on a massacre in Kashmir involving India and Pakistan.
+2. **More Russian Strikes on Ukraine**: Coverage of the continuing conflict and strikes by Russia on Ukraine.
+3. **World’s Tallest Abandoned Skyscraper**: Resumption of construction in China after a decade.
+4. **Pope Francis' Burial**: Updates on the burial of Pope Francis and related events.
+5. **FBI Arrests Judge**: A judge has been arrested for alleged obstruction in a case linked to the Trump administration.
+6. **Virginia Giuffre's Death**: Reporting on the death of Virginia Giuffre, known for her role in the Epstein case.
+7. **Deepfake Porn in South Korea**: Issues surrounding deepfake pornography affecting lives in South Korea.
+8. **US-Russia-Ukraine Talks**: Trump announces Russia and Ukraine are nearing a deal following US envoy talks in Moscow.
+
+These stories are among the most current news reported by CNN.
+[06:04:27] [APIAgent] INFO Step 2 (23.74s): No action detected in response
+
+--------------------------------- TURN 5/25 ---------------------------------
+
+[06:04:27] [APIAgent] INFO Step 2 (23.74s): Generating response...
+[06:04:38] [APIAgent] RESPONSE Step 2 (34.30s): Here's a summary of the latest news on CNN:
+
+1. **Kashmir Massacre**: Coverage includes a story on a massacre in Kashmir and its implications.
+2. **Russia-Ukraine Conflict**: Reports of continued Russian strikes on Ukraine.
+3. **China's Abandoned Skyscraper**: Plans to resume construction on the tallest abandoned skyscraper in China.
+4. **Pope Francis' Burial**: Details on the burial of Pope Francis.
+5. **FBI Arrests Judge**: A judge has been arrested for obstruction related to a Trump administration case.
+6. **Virginia Giuffre's Death**: Reporting on the death of Virginia Giuffre, a key figure in the Epstein scandal.
+7. **South Korea Deepfake Issues**: Concerns over the impact of deepfake porn in South Korea.
+8. **US-Russia-Ukraine Talks**: Trump mentions near agreement between Russia and Ukraine after meetings with Putin.
+
+These are among the top stories currently featured on CNN.
+[06:04:38] [APIAgent] INFO Step 2 (34.30s): No action detected in response
+
+--------------------------------- TURN 6/25 ---------------------------------
+
+[06:04:38] [APIAgent] INFO Step 2 (34.30s): Generating response...
+[06:04:39] [APIAgent] RESPONSE Step 2 (34.90s): Error: Unexpected API response format
+[06:04:39] [APIAgent] INFO Step 2 (34.90s): No action detected in response
+
+--------------------------------- TURN 7/25 ---------------------------------
+
+[06:04:39] [APIAgent] INFO Step 2 (34.91s): Generating response...
+[06:04:39] [APIAgent] RESPONSE Step 2 (35.56s): Error: Unexpected API response format
+[06:04:39] [APIAgent] INFO Step 2 (35.56s): No action detected in response
+
+--------------------------------- TURN 8/25 ---------------------------------
+
+[06:04:39] [APIAgent] INFO Step 2 (35.57s): Generating response...
+[06:04:40] [APIAgent] RESPONSE Step 2 (35.99s): Error: Unexpected API response format
+[06:04:40] [APIAgent] INFO Step 2 (35.99s): No action detected in response
+
+--------------------------------- TURN 9/25 ---------------------------------
+
+[06:04:40] [APIAgent] INFO Step 2 (36.00s): Generating response...
+[06:04:40] [APIAgent] RESPONSE Step 2 (36.70s): Error: Unexpected API response format
+[06:04:40] [APIAgent] INFO Step 2 (36.70s): No action detected in response
+
+--------------------------------- TURN 10/25 ---------------------------------
+
+[06:04:40] [APIAgent] INFO Step 2 (36.70s): Generating response...
+[06:04:41] [APIAgent] RESPONSE Step 2 (37.19s): Error: Unexpected API response format
+[06:04:41] [APIAgent] INFO Step 2 (37.19s): No action detected in response
+
+--------------------------------- TURN 11/25 ---------------------------------
+
+[06:04:41] [APIAgent] INFO Step 2 (37.19s): Generating response...
+[06:04:41] [APIAgent] RESPONSE Step 2 (37.70s): Error: Unexpected API response format
+[06:04:41] [APIAgent] INFO Step 2 (37.70s): No action detected in response
+
+--------------------------------- TURN 12/25 ---------------------------------
+
+[06:04:41] [APIAgent] INFO Step 2 (37.70s): Generating response...
+[06:04:42] [APIAgent] RESPONSE Step 2 (38.29s): Error: Unexpected API response format
+[06:04:42] [APIAgent] INFO Step 2 (38.29s): No action detected in response
+
+--------------------------------- TURN 13/25 ---------------------------------
+
+[06:04:42] [APIAgent] INFO Step 2 (38.29s): Generating response...
+[06:04:43] [APIAgent] RESPONSE Step 2 (38.95s): Error: Unexpected API response format
+[06:04:43] [APIAgent] INFO Step 2 (38.95s): No action detected in response
+
+--------------------------------- TURN 14/25 ---------------------------------
+
+[06:04:43] [APIAgent] INFO Step 2 (38.95s): Generating response...
+[06:04:43] [APIAgent] RESPONSE Step 2 (39.57s): Error: Unexpected API response format
+[06:04:43] [APIAgent] INFO Step 2 (39.57s): No action detected in response
+
+--------------------------------- TURN 15/25 ---------------------------------
+
+[06:04:43] [APIAgent] INFO Step 2 (39.58s): Generating response...
+[06:04:44] [APIAgent] RESPONSE Step 2 (40.18s): Error: Unexpected API response format
+[06:04:44] [APIAgent] INFO Step 2 (40.19s): No action detected in response
+
+--------------------------------- TURN 16/25 ---------------------------------
+
+[06:04:44] [APIAgent] INFO Step 2 (40.19s): Generating response...
+[06:04:45] [APIAgent] RESPONSE Step 2 (40.80s): Error: Unexpected API response format
+[06:04:45] [APIAgent] INFO Step 2 (40.81s): No action detected in response
+
+--------------------------------- TURN 17/25 ---------------------------------
+
+[06:04:45] [APIAgent] INFO Step 2 (40.81s): Generating response...
+[06:04:45] [APIAgent] RESPONSE Step 2 (41.51s): Error: Unexpected API response format
+[06:04:45] [APIAgent] INFO Step 2 (41.51s): No action detected in response
+
+--------------------------------- TURN 18/25 ---------------------------------
+
+[06:04:45] [APIAgent] INFO Step 2 (41.51s): Generating response...
+[06:04:46] [APIAgent] RESPONSE Step 2 (42.17s): Error: Unexpected API response format
+[06:04:46] [APIAgent] INFO Step 2 (42.17s): No action detected in response
+
+--------------------------------- TURN 19/25 ---------------------------------
+
+[06:04:46] [APIAgent] INFO Step 2 (42.17s): Generating response...
+[06:04:47] [APIAgent] RESPONSE Step 2 (42.86s): Error: Unexpected API response format
+[06:04:47] [APIAgent] INFO Step 2 (42.86s): No action detected in response
+
+--------------------------------- TURN 20/25 ---------------------------------
+
+[06:04:47] [APIAgent] INFO Step 2 (42.86s): Generating response...
+[06:04:47] [APIAgent] RESPONSE Step 2 (43.60s): Error: Unexpected API response format
+[06:04:47] [APIAgent] INFO Step 2 (43.60s): No action detected in response
+
+--------------------------------- TURN 21/25 ---------------------------------
+
+[06:04:47] [APIAgent] INFO Step 2 (43.60s): Generating response...
+[06:04:48] [APIAgent] RESPONSE Step 2 (44.41s): Error: Unexpected API response format
+[06:04:48] [APIAgent] INFO Step 2 (44.41s): No action detected in response
+
+--------------------------------- TURN 22/25 ---------------------------------
+
+[06:04:48] [APIAgent] INFO Step 2 (44.41s): Generating response...
+[06:04:49] [APIAgent] RESPONSE Step 2 (45.14s): Error: Unexpected API response format
+[06:04:49] [APIAgent] INFO Step 2 (45.14s): No action detected in response
+
+--------------------------------- TURN 23/25 ---------------------------------
+
+[06:04:49] [APIAgent] INFO Step 2 (45.15s): Generating response...
+[06:04:50] [APIAgent] RESPONSE Step 2 (45.92s): Error: Unexpected API response format
+[06:04:50] [APIAgent] INFO Step 2 (45.92s): No action detected in response
+
+--------------------------------- TURN 24/25 ---------------------------------
+
+[06:04:50] [APIAgent] INFO Step 2 (45.93s): Generating response...
+[06:04:51] [APIAgent] RESPONSE Step 2 (46.94s): Error: Unexpected API response format
+[06:04:51] [APIAgent] INFO Step 2 (46.94s): No action detected in response
+
+--------------------------------- TURN 25/25 ---------------------------------
+
+[06:04:51] [APIAgent] INFO Step 2 (46.94s): Generating response...
+[06:04:52] [APIAgent] RESPONSE Step 2 (47.82s): Error: Unexpected API response format
+[06:04:52] [APIAgent] INFO Step 2 (47.82s): No action detected in response
+[06:04:52] [APIAgent] WARNING Step 2 (47.82s): Reached maximum number of turns without a final answer.

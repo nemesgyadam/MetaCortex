@@ -1,0 +1,39 @@
+2025-04-26 15:09:54,623 - mcp.server.lowlevel.server - DEBUG - Initializing server 'wolt'
+2025-04-26 15:09:54,624 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListToolsRequest
+2025-04-26 15:09:54,624 - mcp.server.lowlevel.server - DEBUG - Registering handler for CallToolRequest
+2025-04-26 15:09:54,624 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListResourcesRequest
+2025-04-26 15:09:54,624 - mcp.server.lowlevel.server - DEBUG - Registering handler for ReadResourceRequest
+2025-04-26 15:09:54,624 - mcp.server.lowlevel.server - DEBUG - Registering handler for PromptListRequest
+2025-04-26 15:09:54,625 - mcp.server.lowlevel.server - DEBUG - Registering handler for GetPromptRequest
+2025-04-26 15:09:54,625 - mcp.server.lowlevel.server - DEBUG - Registering handler for ListResourceTemplatesRequest
+2025-04-26 15:09:54,656 - __main__ - INFO - Starting Wolt MCP server... Logging to console and C:\Code\MetaCortex_v1\wolt\logs\wolt_mcp_server_20250426_150954.log
+2025-04-26 15:09:54,657 - __main__ - DEBUG - Using AUTH_TOKEN: ******
+2025-04-26 15:09:54,657 - __main__ - DEBUG - Using SESSION_ID: 46d17e71-e323-460b-af03-7fc7c68ac653
+2025-04-26 15:09:54,666 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-04-26 15:09:54,673 - mcp.server.lowlevel.server - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=NotificationParams(meta=None), jsonrpc='2.0')
+2025-04-26 15:09:54,676 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x00000239C14048D0>
+2025-04-26 15:09:54,676 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2025-04-26 15:09:54,677 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type ListToolsRequest
+2025-04-26 15:09:54,680 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-04-26 15:10:00,113 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x00000239C154D350>
+2025-04-26 15:10:00,114 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2025-04-26 15:10:00,114 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type CallToolRequest
+2025-04-26 15:10:00,335 - httpcore.connection - DEBUG - connect_tcp.started host='consumer-api.wolt.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-04-26 15:10:00,370 - httpcore.connection - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000239C154EA50>
+2025-04-26 15:10:00,370 - httpcore.connection - DEBUG - start_tls.started ssl_context=<ssl.SSLContext object at 0x00000239C1966E70> server_hostname='consumer-api.wolt.com' timeout=5.0
+2025-04-26 15:10:00,390 - httpcore.connection - DEBUG - start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000239C19EF850>
+2025-04-26 15:10:00,390 - httpcore.http11 - DEBUG - send_request_headers.started request=<Request [b'POST']>
+2025-04-26 15:10:00,390 - httpcore.http11 - DEBUG - send_request_headers.complete
+2025-04-26 15:10:00,391 - httpcore.http11 - DEBUG - send_request_body.started request=<Request [b'POST']>
+2025-04-26 15:10:00,391 - httpcore.http11 - DEBUG - send_request_body.complete
+2025-04-26 15:10:00,391 - httpcore.http11 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
+2025-04-26 15:10:00,468 - httpcore.http11 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 401, b'Unauthorized', [(b'Content-Length', b'0'), (b'Connection', b'keep-alive'), (b'Date', b'Sat, 26 Apr 2025 13:10:00 GMT'), (b'X-Cache', b'Error from cloudfront'), (b'Via', b'1.1 f37834b71dcaa17cc08f5c67189869e2.cloudfront.net (CloudFront)'), (b'X-Amz-Cf-Pop', b'BUD50-P1'), (b'X-Amz-Cf-Id', b'Hn15-_HYiRm9pQ6Gj0zOPOrRgcJYnQ8hOoB1Nv8FkNJWrVMy_zxHnw==')])
+2025-04-26 15:10:00,468 - httpx - INFO - HTTP Request: POST https://consumer-api.wolt.com/order-xp/v1/baskets "HTTP/1.1 401 Unauthorized"
+2025-04-26 15:10:00,469 - httpcore.http11 - DEBUG - receive_response_body.started request=<Request [b'POST']>
+2025-04-26 15:10:00,469 - httpcore.http11 - DEBUG - receive_response_body.complete
+2025-04-26 15:10:00,469 - httpcore.http11 - DEBUG - response_closed.started
+2025-04-26 15:10:00,469 - httpcore.http11 - DEBUG - response_closed.complete
+2025-04-26 15:10:00,470 - httpcore.connection - DEBUG - close.started
+2025-04-26 15:10:00,470 - httpcore.connection - DEBUG - close.complete
+2025-04-26 15:10:00,470 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-04-26 15:11:51,570 - __main__ - INFO - Server stopped

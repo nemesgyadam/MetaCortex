@@ -1,0 +1,29 @@
+2025-04-26 13:25:18,034 - __main__ - INFO - Starting Wolt MCP server... Logging to console and C:/Code/MetaCortex_v1/logs\wolt_mcp_server_20250426_132518.log
+2025-04-26 13:25:18,046 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2025-04-26 13:25:24,635 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2025-04-26 13:25:24,910 - httpx - INFO - HTTP Request: GET https://consumer-api.wolt.com/order-xp/v1/baskets/count "HTTP/1.1 401 Unauthorized"
+2025-04-26 13:25:24,911 - __main__ - ERROR - Failed to get basket count: Client error '401 Unauthorized' for url 'https://consumer-api.wolt.com/order-xp/v1/baskets/count'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+Traceback (most recent call last):
+  File "C:\Code\MetaCortex_v1\wolt\wolt.py", line 430, in wolt_basket_count
+    resp.raise_for_status()
+  File "C:\Users\Nemes\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://consumer-api.wolt.com/order-xp/v1/baskets/count'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+2025-04-26 13:25:30,551 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2025-04-26 13:25:30,660 - httpx - INFO - HTTP Request: POST https://consumer-api.wolt.com/order-xp/v1/baskets "HTTP/1.1 401 Unauthorized"
+2025-04-26 13:25:30,660 - __main__ - ERROR - Failed to create basket: Client error '401 Unauthorized' for url 'https://consumer-api.wolt.com/order-xp/v1/baskets'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+Traceback (most recent call last):
+  File "C:\Code\MetaCortex_v1\wolt\wolt.py", line 391, in wolt_create_basket
+    resp.raise_for_status()
+  File "C:\Users\Nemes\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_models.py", line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error '401 Unauthorized' for url 'https://consumer-api.wolt.com/order-xp/v1/baskets'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+2025-04-26 13:25:36,609 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2025-04-26 13:25:36,609 - __main__ - INFO - Fetching restaurants near lat=47.497912, lon=19.040235
+2025-04-26 13:25:36,728 - httpx - INFO - HTTP Request: GET https://restaurant-api.wolt.com/v1/pages/restaurants?lat=47.497912&lon=19.040235 "HTTP/1.1 401 Unauthorized"
+2025-04-26 13:25:36,730 - __main__ - ERROR - Wolt API HTTP error: 401 - 
+2025-04-26 13:32:12,388 - __main__ - INFO - Server stopped
