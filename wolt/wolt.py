@@ -4,12 +4,10 @@ import logging
 from typing import List, Dict, Any, Optional
 import datetime
 import os
+import argparse
 
 import httpx
 from mcp.server.fastmcp import FastMCP
-
-
-
 
 # --- Logging Setup ---
 # Ensure log directory exists
@@ -26,7 +24,7 @@ log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(me
 
 # Root logger setup (optional, but good practice)
 root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO) # Set root level
+root_logger.setLevel(logging.INFO) # Set root level to DEBUG
 
 # Clear existing handlers (important if script is re-run in same process)
 if root_logger.hasHandlers():
@@ -107,6 +105,9 @@ mcp = FastMCP("wolt")
 WOLT_API_BASE = "https://consumer-api.wolt.com"
 WOLT_RESTAURANT_API_BASE = "https://restaurant-api.wolt.com"
 
+# Removed hardcoded AUTH_TOKEN and SESSION_ID
+AUTH_TOKEN: Optional[str] = None
+SESSION_ID: Optional[str] = None
 
 def _parse_restaurant_data(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Parses the restaurant data from the Wolt API response."""
@@ -146,7 +147,7 @@ def _format_restaurant_output(restaurants: List[Dict[str, Any]]) -> str:
     return "\n".join(output_lines)
 
 
-def get_auth_headers(language: str = "en", auth_token: Optional[str] = None, session_id: Optional[str] = None, client_id: str = "web") -> Dict[str, str]:
+def get_auth_headers(language: str = "en", client_id: str = "web") -> Dict[str, str]:
     """
     Generate common authentication headers used in Wolt API requests.
     
@@ -167,18 +168,18 @@ def get_auth_headers(language: str = "en", auth_token: Optional[str] = None, ses
         "X-Client-Id": client_id
     }
     
-    # Add authentication headers if provided
-    if session_id:
-        headers["X-Session-Id"] = session_id
+    # Add authentication headers from global variables
+    if SESSION_ID:
+        headers["X-Session-Id"] = SESSION_ID
         
-    if auth_token:
-        headers["Authorization"] = f"Bearer {auth_token}"
+    if AUTH_TOKEN:
+        headers["Authorization"] = f"Bearer {AUTH_TOKEN}"
         
     return headers
 
 
 @mcp.tool()
-async def list_nearby_restaurants(lat: float, lon: float, category: Optional[str] = None, auth_token: Optional[str] = AUTH_TOKEN, session_id: Optional[str] = SESSION_ID, language: str = "en") -> str:
+async def list_nearby_restaurants(lat: float, lon: float, category: Optional[str] = None, language: str = "en") -> str:
     """Fetches a list of restaurants near the given latitude and longitude using the Wolt API.
 
     Args:
@@ -201,7 +202,7 @@ async def list_nearby_restaurants(lat: float, lon: float, category: Optional[str
         url = f"{WOLT_RESTAURANT_API_BASE}/v1/pages/restaurants"
     
     params = {"lat": lat, "lon": lon}
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
+    headers = get_auth_headers(language=language)
 
     try:
         async with httpx.AsyncClient() as client:
@@ -229,7 +230,7 @@ async def list_nearby_restaurants(lat: float, lon: float, category: Optional[str
 
 #TODO only return venues no items!
 @mcp.tool()
-async def wolt_venue_list(location_code: str, lat: float = None, lon: float = None, open_now: bool = None, auth_token: Optional[str] = AUTH_TOKEN, session_id: Optional[str] = SESSION_ID, language: str = "en") -> dict:
+async def wolt_venue_list(location_code: str, lat: float = None, lon: float = None, open_now: bool = None, language: str = "en") -> dict:
     """List venues that deliver to a location code. Returns a dictionary containing a list of venues
        with their ID, name, rating, and preview menu items, or an error dictionary.
     """
@@ -243,7 +244,7 @@ async def wolt_venue_list(location_code: str, lat: float = None, lon: float = No
     if open_now:
         params["filters"] = "open"
     
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
+    headers = get_auth_headers(language=language)
     
     log.info(f"Attempting to fetch venue list...")
     log.info(f"URL: {url}")
@@ -283,7 +284,7 @@ async def wolt_venue_profile(slug: str, language: str = "en", auth_token: Option
     ""
     url = f"{WOLT_API_BASE}/v1/pages/venues/{slug}"
     params = {"lang": language}
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
+    headers = get_auth_headers(language=language)
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, params=params, headers=headers, timeout=30.0)
@@ -296,13 +297,12 @@ async def wolt_venue_profile(slug: str, language: str = "en", auth_token: Option
 
 
 @mcp.tool()
-async def wolt_venue_menu(slug: str, language: str = "en", auth_token: Optional[str] = AUTH_TOKEN, session_id: Optional[str] = SESSION_ID) -> dict:
+async def wolt_venue_menu(slug: str, language: str = "en") -> dict:
     """Get full menu (categories + items) for a venue.
     
     Args:
         slug: Venue slug (from URL, e.g., 'mcdonalds-blaha')
         language: Language code for localization (default: 'en')
-        auth_token: Optional Wolt authentication token
     """
     # This API endpoint matches the successful one from wolt_venue_menu_api.py
     url = f"{WOLT_API_BASE}/consumer-api/consumer-assortment/v1/venues/slug/{slug}/assortment"
@@ -313,40 +313,25 @@ async def wolt_venue_menu(slug: str, language: str = "en", auth_token: Optional[
         "loading_strategy": "full"
     }
     
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
+    headers = get_auth_headers(language=language)
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, params=params, headers=headers, timeout=30.0)
             resp.raise_for_status()
-            # Save response to file with timestamp
-            from datetime import datetime
-            import os
             
-            # Create directory if it doesn't exist
-            os.makedirs("C:/Code/MetaCortex_v1/wolt", exist_ok=True)
-            
-            # Format filename with slug and current timestamp
-            now = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"C:/Code/MetaCortex_v1/wolt/menu_{slug}_{now}.txt"
-            
-            # Write response to file
-            with open(filename, "w", encoding="utf-8") as f:
-                f.write(json.dumps(resp.json(), indent=2))
-
-            return resp.json()
+            return filter_venue_menu(resp.json())
     except Exception as e:
         log.exception(f"Failed to fetch venue menu: {e}")
         return {"error": str(e)}
 
 @mcp.tool()
-async def wolt_menu_items(slug: str, item_ids: list = None, language: str = "en", auth_token: Optional[str] = AUTH_TOKEN, session_id: Optional[str] = SESSION_ID) -> dict:
+async def wolt_menu_items(slug: str, item_ids: list = None, language: str = "en") -> dict:
     """Fetch one or more specific menu items by ID for a venue.
     
     Args:
         slug: Venue slug (from URL, e.g., 'mcdonalds-blaha')
         item_ids: List of item IDs to fetch
         language: Language code for localization (default: 'en')
-        auth_token: Optional Wolt authentication token
     """
     url = f"{WOLT_API_BASE}/consumer-api/consumer-assortment/v1/venues/slug/{slug}/items"
     
@@ -354,54 +339,134 @@ async def wolt_menu_items(slug: str, item_ids: list = None, language: str = "en"
     if item_ids:
         params["ids"] = ",".join(item_ids)
         
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
+    headers = get_auth_headers(language=language)
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, params=params, headers=headers, timeout=30.0)
-            resp.raise_for_status()
+            resp.raise_for_status()     
             return resp.json()
     except Exception as e:
         log.exception(f"Failed to fetch menu items: {e}")
         return {"error": str(e)}
 
+
+
+async def create_basket(
+    venue_id: str,
+    item_id: str,
+    quantity: int = 1,
+    client_id: str = "web",
+    language: str = "en"
+) -> Dict[str, Any]:
+    """
+    Create a basket with an item directly using the Wolt API.
+    
+    Args:
+        venue_id: ID of the venue
+        item_id: ID of the item to add
+        quantity: Quantity of items to add
+        client_id: Client ID (default: web)
+        language: Language code (default: en)
+        
+    Returns:
+        Response JSON from the Wolt API
+    """
+    # API endpoint
+    base_url = "https://consumer-api.wolt.com"
+    endpoint = "/order-xp/v1/baskets"
+    url = f"{base_url}{endpoint}"
+    
+    # Prepare headers following the pattern from wolt_venue_menu_api.py
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Accept-Language": language,
+        "X-Client-Id": client_id
+    }
+    
+    # Add authentication headers if provided
+    if SESSION_ID:
+        headers["X-Session-Id"] = SESSION_ID
+        
+    if AUTH_TOKEN:
+        headers["Authorization"] = f"Bearer {AUTH_TOKEN}"
+    
+    # Prepare basket creation request data
+    data = {
+        "venue_id": venue_id,
+        "items": [
+            {
+                "id": item_id,
+                "quantity": quantity,
+                "price": 95000  # Price of item in smallest currency unit (from API response)
+            }
+        ],
+        "currency": "HUF"  # Example for Hungary, change if needed
+    }
+    
+    print(f"Making request to {url}")
+    print(f"Headers: {headers}")
+    print(f"Request data: {data}")
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=data, headers=headers)
+            
+            # Get the response content regardless of status code
+            response_text = response.text
+            
+            # Print response details for debugging
+            print(f"Response status: {response.status_code}")
+            print(f"Response headers: {response.headers}")
+            print(f"Response content: {response_text[:500]}..." if len(response_text) > 500 else response_text)
+            
+            # Force raise an exception for HTTP errors
+            response.raise_for_status()
+            
+            # Return the JSON response if successful
+            return response.json()
+            
+    except httpx.HTTPStatusError as e:
+        print(f"HTTP error: {e}")
+        # Try to parse the error response if possible
+        if hasattr(e, 'response') and e.response is not None:
+            try:
+                error_data = e.response.json()
+                print(f"Error details: {error_data}")
+                return {"error": str(e), "details": error_data}
+            except Exception:
+                pass
+        return {"error": str(e)}
+    except Exception as e:
+        print(f"Error creating basket: {e}")
+        return {"error": str(e)}
+
+
+
 @mcp.tool()
-async def wolt_create_basket(venue_id: str, items: list, currency: str = None, auth_token: Optional[str] = AUTH_TOKEN, session_id: Optional[str] = SESSION_ID, language: str = "en") -> dict:
+async def wolt_create_basket(venue_id: str, item_id: str, currency: str = None, language: str = "en") -> dict:
     """Create a new basket for a venue and initial items.
     
     Args:
         venue_id: ID of the venue (not the slug)
-        items: List of items to add to basket
+        item_id: ID of the item to add
         currency: Optional currency code
-        auth_token: Wolt authentication token (required for this operation)
         language: Language code for localization (default: 'en')
     """
-    url = f"{WOLT_API_BASE}/order-xp/v1/baskets"
-    payload = {"venueId": venue_id, "items": items}
-    if currency:
-        payload["currency"] = currency
-        
-    # This particular endpoint requires authentication
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
-    try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(url, json=payload, headers=headers, timeout=30.0)
-            resp.raise_for_status()
-            return resp.json()
-    except Exception as e:
-        log.exception(f"Failed to create basket: {e}")
-        return {"error": str(e)}
+
+    return await create_basket(venue_id, item_id, 1, "web", language)
 
 @mcp.tool()
-async def wolt_get_basket(basket_id: str, auth_token: Optional[str] = AUTH_TOKEN, session_id: Optional[str] = SESSION_ID, language: str = "en") -> dict:
+async def wolt_get_basket(basket_id: str, language: str = "en") -> dict:
     """Retrieve a basket by basketId.
     
     Args:
         basket_id: ID of the basket to retrieve
-        auth_token: Wolt authentication token (required for this operation)
         language: Language code for localization (default: 'en')
     """
     url = f"{WOLT_API_BASE}/order-xp/v1/baskets/{basket_id}"
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
+    headers = get_auth_headers(language=language)
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, headers=headers, timeout=30.0)
@@ -412,15 +477,14 @@ async def wolt_get_basket(basket_id: str, auth_token: Optional[str] = AUTH_TOKEN
         return {"error": str(e)}
 
 @mcp.tool()
-async def wolt_basket_count(auth_token: Optional[str] = AUTH_TOKEN, session_id: Optional[str] = SESSION_ID, language: str = "en") -> dict:
+async def wolt_basket_count(language: str = "en") -> int:
     """Get number of active baskets for current user.
     
     Args:
-        auth_token: Wolt authentication token (required for this operation)
         language: Language code for localization (default: 'en')
     """
     url = f"{WOLT_API_BASE}/order-xp/v1/baskets/count"
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
+    headers = get_auth_headers(language=language)
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, headers=headers, timeout=30.0)
@@ -431,7 +495,7 @@ async def wolt_basket_count(auth_token: Optional[str] = AUTH_TOKEN, session_id: 
         return {"error": str(e)}
 
 @mcp.tool()
-async def wolt_checkout(purchase_plan: dict, auth_token: Optional[str] = AUTH_TOKEN, session_id: Optional[str] = SESSION_ID, language: str = "en") -> dict:
+async def wolt_checkout(purchase_plan: dict, language: str = "en") -> dict:
     """Finalise checkout and place the order.
     WARNING: This function should NOT be run during development or testing!
     
@@ -446,7 +510,7 @@ async def wolt_checkout(purchase_plan: dict, auth_token: Optional[str] = AUTH_TO
         return {"error": "Checkout blocked: dev_mode flag is set to True. This is a safety feature to prevent accidental orders."}
         
     url = f"{WOLT_API_BASE}/order-xp/web/v2/pages/checkout"
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
+    headers = get_auth_headers(language=language)
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.post(url, json=purchase_plan, headers=headers, timeout=30.0)
@@ -457,7 +521,7 @@ async def wolt_checkout(purchase_plan: dict, auth_token: Optional[str] = AUTH_TO
         return {"error": str(e)}
 
 @mcp.tool()
-async def wolt_past_orders(cursor: str = None, auth_token: Optional[str] = AUTH_TOKEN, session_id: Optional[str] = SESSION_ID, language: str = "en") -> dict:
+async def wolt_past_orders(cursor: str = None, language: str = "en") -> dict:
     """List the user's past orders (paginated, newest first).
     
     Args:
@@ -469,7 +533,7 @@ async def wolt_past_orders(cursor: str = None, auth_token: Optional[str] = AUTH_
     params = {}
     if cursor:
         params["cursor"] = cursor
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
+    headers = get_auth_headers(language=language)
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, params=params, headers=headers, timeout=30.0)
@@ -480,7 +544,7 @@ async def wolt_past_orders(cursor: str = None, auth_token: Optional[str] = AUTH_
         return {"error": str(e)}
 
 @mcp.tool()
-async def wolt_geocode_address(place_id: str, auth_token: Optional[str] = AUTH_TOKEN, session_id: Optional[str] = SESSION_ID, language: str = "en") -> dict:
+async def wolt_geocode_address(place_id: str, language: str = "en") -> dict:
     """Resolve Google Place ID to street address.
     
     Args:
@@ -490,7 +554,7 @@ async def wolt_geocode_address(place_id: str, auth_token: Optional[str] = AUTH_T
     """
     url = f"{WOLT_API_BASE}/v1/google/geocode-address"
     params = {"place_id": place_id}
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
+    headers = get_auth_headers(language=language)
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, params=params, headers=headers, timeout=30.0)
@@ -501,7 +565,7 @@ async def wolt_geocode_address(place_id: str, auth_token: Optional[str] = AUTH_T
         return {"error": str(e)}
 
 @mcp.tool()
-async def wolt_order_tracking(order_id: str, auth_token: Optional[str] = AUTH_TOKEN, session_id: Optional[str] = SESSION_ID, language: str = "en") -> dict:
+async def wolt_order_tracking(order_id: str, language: str = "en") -> dict:
     """Get live tracking data for an order.
     
     Args:
@@ -510,7 +574,7 @@ async def wolt_order_tracking(order_id: str, auth_token: Optional[str] = AUTH_TO
         language: Language code for localization (default: 'en')
     """
     url = f"{WOLT_API_BASE}/order-xp/v1/pages/order-tracking/{order_id}"
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
+    headers = get_auth_headers(language=language)
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, headers=headers, timeout=30.0)
@@ -522,7 +586,7 @@ async def wolt_order_tracking(order_id: str, auth_token: Optional[str] = AUTH_TO
 
 
 @mcp.tool()
-async def wolt_bulk_delete_baskets(ids: list, auth_token: Optional[str] = AUTH_TOKEN, session_id: Optional[str] = SESSION_ID, language: str = "en") -> dict:
+async def wolt_bulk_delete_baskets(ids: list, language: str = "en") -> dict:
     """Delete multiple baskets in one call.
     
     Args:
@@ -535,7 +599,7 @@ async def wolt_bulk_delete_baskets(ids: list, auth_token: Optional[str] = AUTH_T
     """
     url = f"{WOLT_API_BASE}/order-xp/v1/baskets/bulk/delete"
     payload = {"ids": ids}
-    headers = get_auth_headers(language=language, auth_token=auth_token, session_id=session_id)
+    headers = get_auth_headers(language=language)
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.post(url, json=payload, headers=headers, timeout=30.0)
@@ -548,9 +612,106 @@ async def wolt_bulk_delete_baskets(ids: list, auth_token: Optional[str] = AUTH_T
         log.exception(f"Failed to bulk delete baskets: {e}")
         return {"error": str(e)}
 
+from typing import Dict, Any, List
+
+def filter_venue_menu(menu_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Filters the wolt_venue_menu response to include only essential details
+    like id, description, and name for categories and items, and id/name for options.
+
+    Args:
+        menu_data: The raw dictionary response from the wolt_venue_menu tool.
+
+    Returns:
+        A filtered dictionary containing only the specified fields for
+        categories, items, and options.
+    """
+    log.info("Filtering venue menu data...")
+    filtered_data: Dict[str, Any] = {}
+
+    # Filter categories
+    if "categories" in menu_data:
+        filtered_data["categories"] = [
+            {
+                "id": category.get("id"),
+                "description": category.get("description", ""), # Handle missing description
+                "name": category.get("name"),
+            }
+            for category in menu_data["categories"]
+            if category.get("id") and category.get("name") # Ensure id and name exist
+        ]
+
+    # Filter items
+    if "items" in menu_data:
+        filtered_data["items"] = [
+            {
+                "id": item.get("id"),
+                "description": item.get("description", ""), # Handle missing description
+                "name": item.get("name"),
+            }
+            for item in menu_data["items"]
+            if item.get("id") and item.get("name") # Ensure id and name exist
+        ]
+
+    # Filter options and their values
+    if "options" in menu_data:
+        filtered_options: List[Dict[str, Any]] = []
+        for option in menu_data.get("options", []):
+            filtered_option: Dict[str, Any] = {
+                "id": option.get("id"),
+                "name": option.get("name"),
+            }
+            # Filter values within the option
+            if "values" in option:
+                filtered_option["values"] = [
+                    {
+                        "id": value.get("id"),
+                        "name": value.get("name"),
+                    }
+                    for value in option["values"]
+                    if value.get("id") and value.get("name") # Ensure id and name exist for values
+                ]
+            # Only add the option if it has id and name
+            if filtered_option.get("id") and filtered_option.get("name"):
+                 filtered_options.append(filtered_option)
+        if filtered_options:
+            filtered_data["options"] = filtered_options
+
+
+    return filtered_data
+
 if __name__ == "__main__":
-    # Initialize and run the server
-    log.info(f"Starting Wolt MCP server... Logging to console and {log_file}") # Log filename at start
-    mcp.run(transport='stdio')
-    # This code won't be reached until the server is stopped
-    log.info("Server stopped")
+    # --- Argument Parsing ---
+    parser = argparse.ArgumentParser(description="Wolt MCP Server")
+    parser.add_argument("--auth-token", required=True, help="Wolt API Authentication Token (Bearer)")
+    parser.add_argument("--session-id", required=True, help="Wolt API Session ID")
+    parser.add_argument("--sse", action="store_true", help="Enable SSE")
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind the server to")
+    parser.add_argument("--port", type=int, default=65433, help="Port to bind the server to")
+    args = parser.parse_args()
+
+    # Assign parsed arguments to global variables
+    AUTH_TOKEN = args.auth_token
+    SESSION_ID = args.session_id
+    # --- End Argument Parsing ---
+    
+    log.info(f"Starting Wolt MCP server... Logging to console and {log_file}")
+    # Ensure token/id are set before starting
+    if not AUTH_TOKEN or not SESSION_ID:
+        log.error("AUTH_TOKEN and SESSION_ID must be provided via command-line arguments.")
+        sys.exit(1)
+        
+    log.debug(f"Using AUTH_TOKEN: {'******' if AUTH_TOKEN else 'None'}")
+    log.debug(f"Using SESSION_ID: {SESSION_ID}")
+
+    try:
+        if args.sse:
+            mcp.run(transport='sse', host=args.host, port=args.port)
+        else:
+            mcp.run(transport='stdio')
+    except KeyboardInterrupt:
+        log.info("Server stopped by user")
+    except Exception as e:
+        log.exception(f"An unexpected error occurred while running the server: {e}")
+    finally:
+        log.info("Server stopped")
