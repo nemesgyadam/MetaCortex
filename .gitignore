@@ -5,3 +5,5 @@ meta_cortex\__pycache__\*
 *.pyc
 *.cpypython-311.pyc
 *.env
+
+*.txt
