@@ -60,7 +60,7 @@ class LogLevel(Enum):
 class AgentLogger:
     """Fancy console logger for agent operations with colored output and formatting."""
     
-    def __init__(self, agent_name: str = "ReActAgent", show_timestamps: bool = True, concise_mode: bool = False):
+    def __init__(self, agent_name: str = "ReActAgent", show_timestamps: bool = True, concise_mode: bool = False, log_file_path: Optional[str] = None):
         """
         Initialize the agent logger.
         
@@ -68,10 +68,12 @@ class AgentLogger:
             agent_name: Name of the agent for log prefixing
             show_timestamps: Whether to include timestamps in log messages
             concise_mode: If True, only show essential logs (THOUGHT, ACTION, OBSERVATION, RESPONSE, ERROR, CRITICAL, SUCCESS)
+            log_file_path: Path to file where logs should be stored (in addition to console). If None, logs are only printed to console.
         """
         self.agent_name = agent_name
         self.show_timestamps = show_timestamps
         self.concise_mode = concise_mode
+        self.log_file_path = log_file_path
         self.start_time = time.time()
         self.step_count = 0
         
@@ -85,6 +87,10 @@ class AgentLogger:
             LogLevel.CRITICAL,
             LogLevel.SUCCESS
         ]
+        
+        # Create log directory if needed
+        if self.log_file_path:
+            os.makedirs(os.path.dirname(self.log_file_path), exist_ok=True)
         
     def _get_timestamp(self) -> str:
         """
@@ -129,7 +135,19 @@ class AgentLogger:
         step_info = self._format_step() if self.step_count > 0 else ""
         
         # Format the output with color and structure
-        print(f"{timestamp}{color}[{self.agent_name}] {Style.BRIGHT}{label}{Style.RESET_ALL}{color} {step_info}{message}")
+        console_output = f"{timestamp}{color}[{self.agent_name}] {Style.BRIGHT}{label}{Style.RESET_ALL}{color} {step_info}{message}"
+        #print(console_output)
+        
+        # If a log file is specified, write the log to the file without color codes
+        if self.log_file_path:
+            try:
+                with open(self.log_file_path, 'a', encoding='utf-8') as f:
+                    # Remove color codes for file output
+                    file_output = f"{timestamp}[{self.agent_name}] {label} {step_info}{message}\n"
+                    f.write(file_output)
+            except Exception as e:
+                # Print error but don't fail the application
+                print(f"Error writing to log file: {e}")
         
     def section(self, title: str) -> None:
         """
@@ -144,11 +162,31 @@ class AgentLogger:
             
         width = 80
         padding = (width - len(title) - 4) // 2
-        print(f"\n{Fore.CYAN}{Style.BRIGHT}{'-' * padding} {title} {'-' * padding}{Style.RESET_ALL}\n")
+        console_output = f"\n{Fore.CYAN}{Style.BRIGHT}{'-' * padding} {title} {'-' * padding}{Style.RESET_ALL}\n"
+        #print(console_output)
+        
+        # Log section to file if specified
+        if self.log_file_path:
+            try:
+                with open(self.log_file_path, 'a', encoding='utf-8') as f:
+                    file_output = f"\n{'-' * padding} {title} {'-' * padding}\n\n"
+                    f.write(file_output)
+            except Exception as e:
+                print(f"Error writing section to log file: {e}")
         
     def divider(self) -> None:
         """Print a simple divider line."""
-        print(f"\n{Fore.CYAN}{'-' * 80}{Style.RESET_ALL}\n")
+        console_output = f"\n{Fore.CYAN}{'-' * 80}{Style.RESET_ALL}\n"
+        #print(console_output)
+        
+        # Log divider to file if specified
+        if self.log_file_path:
+            try:
+                with open(self.log_file_path, 'a', encoding='utf-8') as f:
+                    file_output = f"\n{'-' * 80}\n\n"
+                    f.write(file_output)
+            except Exception as e:
+                print(f"Error writing divider to log file: {e}")
         
     def thought(self, message: str) -> None:
         """Log an agent thought."""
@@ -309,7 +347,8 @@ class ReActAgent:
         agent_config_path: str = None,
         agent_name: str = None,
         verbose: bool = True,
-        concise_mode: bool = False
+        concise_mode: bool = False,
+        log_file_path: Optional[str] = None
     ):
         """
         Initialize the ReAct agent.
@@ -322,6 +361,7 @@ class ReActAgent:
             agent_name: Custom name for the agent (used in logging)
             verbose: Whether to output detailed logs
             concise_mode: If True, only show essential logs (THOUGHT, ACTION, OBSERVATION, RESPONSE, ERROR, CRITICAL, SUCCESS)
+            log_file_path: Optional path to a file where logs should be stored in addition to console output
         """
         # Initialize with paths
         self.config_path = Path(config_path) if config_path else DEFAULT_CONFIG_PATH
@@ -330,7 +370,7 @@ class ReActAgent:
         # Configure logging
         self.verbose = verbose
         self.concise_mode = concise_mode
-        self.logger = AgentLogger(agent_name or "ReActAgent", show_timestamps=True, concise_mode=concise_mode)
+        self.logger = AgentLogger(agent_name or "ReActAgent", show_timestamps=True, concise_mode=concise_mode, log_file_path=log_file_path)
         
         # These will be populated during initialization
         self.client_manager = None
@@ -357,7 +397,7 @@ class ReActAgent:
         """
         # Create client manager with provided config path
         # Pass verbose=False to hide MCP-related logs
-        self.client_manager = ClientManager(str(self.config_path), verbose=False)
+        self.client_manager = ClientManager(str(self.config_path), verbose=True)
         
         # Load agent configuration
         self.agent_config = AgentConfig(str(self.agent_config_path))

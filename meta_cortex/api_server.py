@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
 from react_agent import ReActAgent, OpenRouterAgent
@@ -91,11 +92,14 @@ class TaskResponse(BaseModel):
 active_agents: Dict[str, ReActAgent] = {}
 task_results: Dict[str, Dict[str, Any]] = {}
 
-def initialize_agent() -> ReActAgent:
+def initialize_agent(task_id: Optional[str] = None) -> ReActAgent:
     """
     Initialize a new ReActAgent instance for the API server.
     Uses the agent's built-in initialization.
     
+    Args:
+        task_id: Optional task ID to associate with this agent for logging purposes
+        
     Returns:
         An initialized ReActAgent
     """
@@ -104,6 +108,13 @@ def initialize_agent() -> ReActAgent:
     config_path = os.path.join(base_dir, "mcp_config.json")
     project_dir = os.path.dirname(base_dir)
     agent_config_path = os.path.join(project_dir, "prompts", "agents.yaml")
+    
+    # Setup log file path if task_id is provided
+    log_file_path = None
+    if task_id:
+        thought_processes_dir = os.path.join(project_dir, "thought_processes")
+        os.makedirs(thought_processes_dir, exist_ok=True)
+        log_file_path = os.path.join(thought_processes_dir, f"{task_id}.txt")
     
     # IMPORTANT: Set the policy for the child watcher which is required for proper subprocess management in asyncio
     # This is the key difference between running directly vs. in FastAPI
@@ -121,8 +132,9 @@ def initialize_agent() -> ReActAgent:
         agent_name="APIAgent",
         config_path=config_path,
         agent_config_path=agent_config_path,
-        verbose=True,
-        concise_mode=True
+        verbose=False,
+        concise_mode=False,
+        log_file_path=log_file_path
     )
     
     try:
@@ -187,7 +199,7 @@ def process_task(task_id: str, query: str) -> None:
         # Ensure we have a global agent
         if "global_agent" not in active_agents or active_agents["global_agent"] is None:
             logger.info(f"Global agent not found, initializing a new one for task {task_id}")
-            active_agents["global_agent"] = initialize_agent()
+            active_agents["global_agent"] = initialize_agent(task_id=task_id)
         
         agent = active_agents["global_agent"]
         
@@ -319,6 +331,40 @@ async def list_tasks() -> List[TaskResponse]:
         )
         for task_id, task_info in task_results.items()
     ]
+
+@app.get("/tasks/{task_id}/thought-process", response_class=PlainTextResponse)
+async def get_thought_process(task_id: str) -> str:
+    """
+    Get the thought process logs for a specific task.
+    
+    Args:
+        task_id: The ID of the task to retrieve thought process for
+    
+    Returns:
+        Plain text content of the thought process file
+    """
+    # First check if task exists
+    #if task_id not in task_results:
+    #    raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
+    
+    # Construct path to thought process file
+    
+    project_dir = "C:\Code\MetaCortex_v1"
+    thought_process_path = os.path.join(project_dir, "thought_processes", f"{task_id}.txt")
+    #print(thought_process_path)
+    # Check if thought process file exists
+    if not os.path.exists(thought_process_path):
+        raise HTTPException(status_code=404, detail=f"Thought process file for task {task_id} not found")
+    
+    try:
+        # Read file content
+        with open(thought_process_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        return content
+    except Exception as e:
+        logger.error(f"Error reading thought process file for task {task_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error reading thought process file: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

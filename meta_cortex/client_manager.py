@@ -33,7 +33,7 @@ class ClientManager:
     Creates and maintains connections to multiple MCP servers.
     """
     
-    def __init__(self, config_file_path: Optional[str] = None, verbose: bool = False):
+    def __init__(self, config_file_path: Optional[str] = None, verbose: bool = True):
         """
         Initialize the client manager with a configuration file path.
         
@@ -146,7 +146,7 @@ class ClientManager:
                 
                 if not command:
                     raise ValueError(f"Missing 'command' in configuration for server {server_name}")
-                    
+                
                 # Create a new client for this server
                 client = MCPClient(command=command, args=args)
                 self.clients[server_name] = client
@@ -320,12 +320,19 @@ async def main():
         
         server_names = manager.get_server_names()
         print(f"Available servers: {server_names}")
-        
+        # Query free/busy information for a specific calendar and time range
+        result = await manager.call_tool("Google Calendar", "google_calendar-query-free-busy-calendars", {
+            "calendarId": "primary",
+            "timeMin": "2025-04-27T00:00:00Z",
+            "timeMax": "2025-04-27T23:59:59Z"
+        })
         # Example: Call a tool on the filesystem server if available
-        if "filesystem" in server_names:
-            result = await manager.call_tool("filesystem", "list_directory", {"path": "C:/Code"})
-            print(f"Directory listing result: {result}")
-        
+        #if "filesystem" in server_names:
+        #    result = await manager.call_tool("filesystem", "list_directory", {"path": "C:/Code"})
+        #   print(f"Directory listing result: {result}")
+        print("#"*100)
+        print(result)
+        print("#"*100)
     except Exception as e:
         print(f"Error in main: {str(e)}")
     finally:
